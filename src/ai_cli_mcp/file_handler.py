@@ -14,6 +14,7 @@ import yaml
 from .cli_manager import is_cli_installed
 from .cli_registry import get_cli_registry
 from .logger import get_logger
+from .session_manager import get_session_manager
 
 logger = get_logger(__name__)
 
@@ -334,3 +335,180 @@ def _cleanup_temp_files(*file_paths: str) -> None:
                 logger.debug(f"임시 파일 삭제: {file_path}")
         except Exception as e:
             logger.warning(f"임시 파일 삭제 실패: {file_path}, {e}")
+
+
+def execute_with_session(
+    cli_name: str,
+    message: str,
+    session_id: str,
+    resume: bool = False,
+    skip_git_repo_check: bool = True,
+    system_prompt: str = None,
+    args: list[str] = None,
+    timeout: int = None
+) -> str:
+    """
+    세션 모드로 CLI 실행
+
+    Args:
+        cli_name: CLI 이름
+        message: 전송할 프롬프트
+        session_id: 세션 ID (MCP 클라이언트 제공)
+        resume: 기존 세션 재개 여부 (기본값: False)
+        skip_git_repo_check: Git 저장소 체크 건너뛰기
+        system_prompt: 시스템 프롬프트
+        args: 추가 CLI 인자
+        timeout: 타임아웃 초 (선택사항, None이면 CLI 기본값 사용)
+
+    Returns:
+        CLI 응답 문자열
+
+    Raises:
+        CLINotFoundError: CLI가 설치되지 않음
+        CLITimeoutError: 실행 타임아웃
+        CLIExecutionError: 실행 중 에러 발생
+    """
+    if args is None:
+        args = []
+
+    # 1. 세션 매니저에서 세션 정보 조회/생성
+    session_manager = get_session_manager()
+    session_info = session_manager.create_or_get_session(session_id, cli_name)
+
+    # 2. CLI 설정 가져오기
+    registry = get_cli_registry()
+    all_clis = registry.get_all_clis()
+
+    if cli_name not in all_clis:
+        raise CLINotFoundError(f"알 수 없는 CLI: {cli_name}")
+
+    config = all_clis[cli_name]
+    command = config["command"]
+    # timeout 우선순위: 파라미터 > CLI 기본값
+    execution_timeout = timeout if timeout is not None else config["timeout"]
+
+    # 3. CLI 설치 확인
+    if not is_cli_installed(command):
+        raise CLINotFoundError(f"{cli_name} ({command})가 설치되지 않았습니다")
+
+    # 4. 세션 플래그 추가 (CLI별 전략)
+    session_args = _build_session_args(
+        cli_name=cli_name,
+        cli_session_id=session_info.cli_session_id,
+        resume=resume,
+        is_first_request=(session_info.request_count == 1)
+    )
+
+    # 5. args와 session_args 병합
+    combined_args = args + session_args
+
+    # 6. args 검증 및 필터링
+    validated_args = _validate_and_filter_args(cli_name, combined_args, config)
+
+    # 7. 임시 파일 생성
+    file_session_id = str(uuid.uuid4())
+    input_fd, input_path = tempfile.mkstemp(
+        suffix=".txt",
+        prefix=f"ai_cli_mcp_input_{file_session_id}_",
+        text=True
+    )
+    output_fd, output_path = tempfile.mkstemp(
+        suffix=".txt",
+        prefix=f"ai_cli_mcp_output_{file_session_id}_",
+        text=True
+    )
+
+    try:
+        # 8. input 파일에 메시지 작성
+        with os.fdopen(input_fd, 'w') as f:
+            if cli_name == "claude" and system_prompt:
+                # Claude는 stdin에 유저 프롬프트만
+                f.write(message)
+            elif system_prompt:
+                # 나머지 CLI: YAML 형식
+                yaml_data = {
+                    "system_prompt": system_prompt,
+                    "prompt": message
+                }
+                yaml.dump(yaml_data, f, default_flow_style=False, allow_unicode=True)
+            else:
+                f.write(message)
+
+        os.close(output_fd)
+
+        # 9. CLI 실행
+        result = _execute_cli(
+            command=command,
+            extra_args=config.get("extra_args", []),
+            env_vars=config.get("env_vars", {}),
+            input_path=input_path,
+            output_path=output_path,
+            timeout=execution_timeout,
+            skip_git_repo_check=skip_git_repo_check,
+            supports_skip_git_check=config.get("supports_skip_git_check", False),
+            skip_git_check_position=config.get("skip_git_check_position", "before_extra_args"),
+            cli_name=cli_name,
+            system_prompt=system_prompt if cli_name == "claude" else None,
+            additional_args=validated_args
+        )
+
+        # 10. output 파일 읽기
+        with open(output_path, 'r') as f:
+            response = f.read()
+
+        return response
+
+    finally:
+        # 11. 임시 파일 정리
+        _cleanup_temp_files(input_path, output_path)
+
+
+def _build_session_args(
+    cli_name: str,
+    cli_session_id: str,
+    resume: bool,
+    is_first_request: bool
+) -> list[str]:
+    """
+    CLI별 세션 플래그 생성
+
+    Args:
+        cli_name: CLI 이름
+        cli_session_id: CLI용 세션 ID
+        resume: 세션 재개 여부
+        is_first_request: 첫 요청 여부
+
+    Returns:
+        세션 플래그 리스트
+    """
+    session_args = []
+
+    if cli_name == "claude":
+        # Claude: --session-id 또는 --resume 사용
+        if resume and not is_first_request:
+            # 세션 재개
+            session_args.extend(["--resume", cli_session_id])
+            logger.debug(f"Claude session resume: {cli_session_id}")
+        else:
+            # 새 세션 시작 (session_id 지정)
+            session_args.extend(["--session-id", cli_session_id])
+            logger.debug(f"Claude new session: {cli_session_id}")
+
+    elif cli_name in ["gemini", "qwen"]:
+        # Gemini/Qwen: 첫 요청이 아니면 --resume latest
+        if not is_first_request and resume:
+            session_args.extend(["--resume", "latest"])
+            logger.debug(f"{cli_name} session resume: latest")
+        else:
+            logger.debug(f"{cli_name} new session (no flag)")
+
+    elif cli_name == "codex":
+        # Codex: resume 서브커맨드 사용 (첫 요청이 아닐 때)
+        if not is_first_request and resume:
+            # codex resume --last 형태
+            # 주의: extra_args가 ["exec", "-"]인데 이를 ["resume", "--last"]로 변경해야 함
+            # 이 부분은 _execute_cli에서 특수 처리 필요
+            logger.warning("Codex session mode requires special handling in extra_args")
+            # TODO: Codex 세션 모드 구현
+
+    return session_args

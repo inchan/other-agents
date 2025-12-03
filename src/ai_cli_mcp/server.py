@@ -14,7 +14,13 @@ from mcp.server.stdio import stdio_server
 
 from .cli_manager import list_available_clis
 from .cli_registry import get_cli_registry
-from .file_handler import CLINotFoundError, CLIExecutionError, CLITimeoutError, execute_cli_file_based
+from .file_handler import (
+    execute_cli_file_based,
+    execute_with_session,
+    CLINotFoundError,
+    CLIExecutionError,
+    CLITimeoutError
+)
 from .logger import get_logger
 from .task_manager import get_task_manager, TaskManager
 
@@ -54,7 +60,7 @@ async def list_tools():
         ),
         Tool(
             name="send_message",
-            description="AI CLI에 메시지 전송 (동기 방식, 긴 작업 시 블로킹될 수 있음)",
+            description="AI CLI에 메시지 전송 (동기 방식, 세션 모드 지원, 긴 작업 시 블로킹될 수 있음)",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -66,9 +72,17 @@ async def list_tools():
                         "type": "string",
                         "description": "전송할 프롬프트"
                     },
+                    "session_id": {
+                        "type": "string",
+                        "description": "세션 ID (선택사항). 제공하면 session 모드, 없으면 stateless 모드"
+                    },
+                    "resume": {
+                        "type": "boolean",
+                        "description": "세션 이어가기 (session_id와 함께 사용, 기본값: false)"
+                    },
                     "system_prompt": {
                         "type": "string",
-                        "description": "시스템 프롬프트 (세션별, 선택사항). Claude는 --append-system-prompt, 나머지는 YAML 형식으로 처리됨"
+                        "description": "시스템 프롬프트 (선택사항). Claude는 --append-system-prompt, 나머지는 YAML 형식으로 처리됨"
                     },
                     "skip_git_repo_check": {
                         "type": "boolean",
@@ -81,7 +95,7 @@ async def list_tools():
                     },
                     "timeout": {
                         "type": "number",
-                        "description": "타임아웃 초 (선택사항, 기본값: 300)"
+                        "description": "타임아웃 초 (선택사항, 기본값: 300). Stateless/Session 모드 모두 지원"
                     }
                 },
                 "required": ["cli_name", "message"]
@@ -195,17 +209,35 @@ async def call_tool(name: str, arguments: Dict[str, Any]):
     elif name == "send_message":
         cli_name = arguments["cli_name"]
         message = arguments["message"]
+        session_id = arguments.get("session_id", None)
+        resume = arguments.get("resume", False)
         system_prompt = arguments.get("system_prompt", None)
         skip_git_repo_check = arguments.get("skip_git_repo_check", True)
         args = arguments.get("args", [])
         timeout = arguments.get("timeout", None)
 
         try:
-            # 동기 방식: 여기서 작업이 끝날 때까지 대기
-            response = await asyncio.to_thread(
-                execute_cli_file_based, cli_name, message, skip_git_repo_check, system_prompt, args, timeout
-            )
+            # 모드 자동 선택: session_id 있으면 세션 모드, 없으면 stateless 모드
+            if session_id:
+                # Session 모드
+                logger.info(f"Session mode: {session_id} (resume: {resume})")
+                response = await asyncio.to_thread(
+                    execute_with_session,
+                    cli_name, message, session_id, resume,
+                    skip_git_repo_check, system_prompt, args, timeout
+                )
+            else:
+                # Stateless 모드 (기존 방식)
+                logger.info("Stateless mode")
+                response = await asyncio.to_thread(
+                    execute_cli_file_based,
+                    cli_name, message, skip_git_repo_check, system_prompt, args, timeout
+                )
             return {"response": response}
+        except ValueError as e:
+            # 세션 ID 검증 실패 또는 세션 제한 초과
+            logger.error(f"Session validation error: {e}")
+            return {"error": str(e), "type": "SessionValidationError"}
         except CLINotFoundError as e:
             logger.error(f"CLI not found: {e}")
             return {"error": str(e), "type": "CLINotFoundError"}

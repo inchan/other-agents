@@ -1,14 +1,29 @@
 # AI CLI Ping-Pong MCP Server
 
+> **Version 2.1** - Session Mode Support
+
 MCP (Model Context Protocol) 서버로 로컬에 설치된 AI CLI 도구들과 **파일 기반**으로 통신합니다.
 
 ## ✨ Features
 
+### Core Features
+- ✅ **list_available_clis**: 설치된 AI CLI 도구 목록 조회
+- ✅ **send_message**: AI CLI에 메시지 보내고 응답 받기 (동기 방식)
 - ✅ **비동기 작업 실행**: `start_send_message`와 `get_task_status`를 통해 긴 작업을 백그라운드에서 처리
 - ✅ **영속적 작업 저장소**: SQLite를 사용하여 서버가 재시작되어도 작업 상태 유지 (선택 사항)
+- ✅ **add_cli**: 런타임에 새로운 AI CLI 추가 (v2.0)
 - ✅ **다양한 CLI 지원**: Claude, Gemini, Codex, Qwen 등 주요 AI 코딩 CLI 도구 지원
-- ✅ **동적 CLI 추가**: `add_cli`를 통해 런타임에 새로운 CLI 동적으로 추가
-- ✅ **안전한 파일 기반 통신**: Stateless 세션을 통해 안전한 CLI 실행 보장
+
+### v2.1 New: Session Mode 🎉
+- ✅ **Stateless/Session 모드 자동 전환**: session_id 유무로 자동 판단
+- ✅ **컨텍스트 유지**: 이전 대화 내용 기억 및 재사용
+- ✅ **다중 세션 격리**: 여러 세션 동시 진행 가능
+- ✅ **CLI별 세션 전략**: Claude (UUID), Gemini/Qwen (latest), Codex (last)
+
+### Other Features
+- ✅ **환경 변수 지원**: Qwen 등 API 키가 필요한 CLI 지원
+- ✅ **skip_git_repo_check**: Codex CLI Git 저장소 체크 스킵 (선택)
+- ✅ **파일 기반 통신**: 안전한 임시 파일 처리
 - ✅ **상세 로깅 시스템**: 디버깅 및 모니터링 용이
 - ✅ **MCP 서버 통합**: MCP SDK 1.22.0과 완벽 호환
 
@@ -88,8 +103,9 @@ pytest tests/mcp-validation/ -v
 ## 📊 Test Coverage & Validation
 
 **MCP 검증 완료** ✅
-- ✅ **63개 테스트 통과** (100% 통과율)
+- ✅ **79개 테스트 통과** (v2.1: +16 session tests)
 - ✅ **전체 커버리지: 86.5%** (목표 80% 초과)
+- ✅ **Session Manager: 95%** (16/16 통과)
 - ✅ **Hit Rate: 100%** (목표 95% 초과)
 - ✅ **Success Rate: 100%** (목표 99% 초과)
 - ✅ **프로덕션 준비 완료**
@@ -97,6 +113,7 @@ pytest tests/mcp-validation/ -v
 **파일별 커버리지:**
 - ✅ `__init__.py`: 100%
 - ✅ `config.py`: 100%
+- ✅ `session_manager.py`: 95% (NEW in v2.1)
 - ✅ `logger.py`: 91.7%
 - ✅ `server.py`: 88.1%
 - ✅ `file_handler.py`: 85.7%
@@ -106,6 +123,7 @@ pytest tests/mcp-validation/ -v
 - 프로토콜 테스트 (Phase 1): 17개
 - 기능 테스트 (Phase 2): 28개
 - E2E 테스트 (Phase 3): 18개
+- **세션 테스트 (v2.1)**: 16개 ✨
 
 ## Architecture
 
@@ -205,12 +223,38 @@ python -m ai_cli_mcp.server
 
 AI CLI에 메시지를 보내고 응답이 올 때까지 대기하는 **동기(Synchronous)** 방식입니다. 간단하고 빠른 작업에 적합합니다.
 
+**Stateless 모드 (기본)**:
 ```json
 {
   "name": "send_message",
   "arguments": {
     "cli_name": "claude",
     "message": "Write a hello world function"
+  }
+}
+```
+
+**Session 모드 (v2.1 NEW)** 🎉:
+```json
+{
+  "name": "send_message",
+  "arguments": {
+    "cli_name": "claude",
+    "message": "파일 20~30번 분석해줘",
+    "session_id": "analysis-001"
+  }
+}
+```
+
+**Session 이어가기**:
+```json
+{
+  "name": "send_message",
+  "arguments": {
+    "cli_name": "claude",
+    "message": "25번 파일은 몇 번째였지?",
+    "session_id": "analysis-001",
+    "resume": true
   }
 }
 ```
@@ -253,6 +297,29 @@ AI CLI에 메시지를 보내고 응답이 올 때까지 대기하는 **동기(S
     "command": "my-cli-command"
   }
 }
+```
+
+### Session Mode 사용 가이드
+
+**Stateless vs Session 모드 선택**:
+
+| 사용 케이스 | 모드 | session_id |
+|-------------|------|------------|
+| 간단한 일회성 질문 | Stateless | 없음 |
+| 연속 분석/대화 | Session | 제공 |
+| 여러 독립적 작업 | Stateless | 없음 |
+| 컨텍스트 유지 필요 | Session | 제공 |
+
+**세션 모드 예시**:
+```python
+# 첫 요청: 분석 시작
+send_message(cli_name="claude", message="프로젝트 분석", session_id="proj-a")
+
+# 후속 요청: 이전 분석 재사용
+send_message(cli_name="claude", message="버그는?", session_id="proj-a", resume=True)
+
+# 다른 세션: 동시 진행 가능
+send_message(cli_name="gemini", message="다른 작업", session_id="proj-b")
 ```
 
 ## License

@@ -1,11 +1,21 @@
 # AI CLI Ping-Pong MCP Server - Requirements
 
-> **Status**: ✅ All Requirements Met + CLI Extensibility Added
-> **Last Updated**: 2025-11-30 (v2.0)
+> **Status**: ✅ All Requirements Met + CLI Extensibility + Session Mode Added
+> **Last Updated**: 2025-12-02 (v2.1)
 
 ---
 
-## Version 2.0 New Features ✨
+## Version 2.1 New Features ✨
+
+**FR-007**: 세션 모드 (Session Mode)
+- Stateless/Session 모드 자동 전환 (session_id 유무로 판단)
+- Session Manager 모듈 (세션 생명주기 관리)
+- CLI별 세션 전략 (Claude: UUID, Gemini/Qwen: latest, Codex: last)
+- 세션별 컨텍스트 유지 및 재개
+- 다중 세션 격리 보장
+- **Status**: ✅ Implemented (16/16 테스트 통과)
+
+## Version 2.0 Features ✨
 
 **FR-006**: 동적 CLI 확장 시스템
 - `add_cli` MCP 도구 추가 (런타임 CLI 추가)
@@ -238,6 +248,8 @@
 | FR-003 | file_handler.py:35 | test_tools_functionality.py | ✅ Verified |
 | FR-004 | config.py:14, file_handler.py:150 | test_file_handler.py | ✅ Verified |
 | FR-005 | file_handler.py:48, config.py:42 | test_file_handler.py | ✅ Verified |
+| FR-006 | cli_registry.py, server.py:add_cli | test_cli_registry.py | ✅ Verified |
+| FR-007 | session_manager.py, file_handler.py:336 | test_session_mode.py | ✅ Verified (16 tests) |
 | NFR-001 | server.py:70 | test_e2e_scenarios.py | ✅ Verified |
 | NFR-002 | collect_metrics.py | validation_metrics.json | ✅ Verified |
 | NFR-003 | collect_metrics.py | validation_metrics.json | ✅ Verified |
@@ -253,6 +265,8 @@
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.1 | 2025-12-02 | Session Mode 추가 (FR-007) |
+| 2.0 | 2025-11-30 | CLI 확장성 추가 (FR-006) |
 | 1.0 | 2025-11-30 | Initial requirements documentation (post-implementation) |
 
 ---
