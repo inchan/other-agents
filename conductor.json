@@ -1,11 +1,7 @@
 {
     "scripts": {
-        "setup": "npm run setup",
-        "build": "npm run build",
-        "dev": "npm run build",
-        "mcp": "npm run dev",
-        "mcp-inspector": "$CONDUCTOR_PORT/scripts/run-mcp-inspector.sh",
-        "archive": "rm -rf \"$HOME/Library/Application Support/com.conductor.app.dev.$CONDUCTOR_WORKSPACE_NAME\""
+        "run": "./scripts/run_tests.sh",
+        "tests": "./scripts/run-mcp-inspector.sh"
     },
     "runScriptMode": "nonconcurrent"
 }

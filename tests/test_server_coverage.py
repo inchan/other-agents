@@ -21,7 +21,7 @@ class TestServerCoverage:
         with patch("other_agents_mcp.server.execute_with_session") as mock_exec:
             mock_exec.side_effect = ValueError("Invalid Session")
             
-            result = await call_tool("run_tool", {
+            result = await call_tool("use_agent", {
                 "cli_name": "claude",
                 "message": "hi",
                 "session_id": "invalid"
@@ -33,7 +33,7 @@ class TestServerCoverage:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_exec:
             mock_exec.side_effect = CLINotFoundError("Not Found")
             
-            result = await call_tool("run_tool", {
+            result = await call_tool("use_agent", {
                 "cli_name": "unknown",
                 "message": "hi"
             })
@@ -43,7 +43,7 @@ class TestServerCoverage:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_exec:
             mock_exec.side_effect = CLITimeoutError("Timeout")
             
-            result = await call_tool("run_tool", {
+            result = await call_tool("use_agent", {
                 "cli_name": "claude",
                 "message": "hi"
             })
@@ -53,7 +53,7 @@ class TestServerCoverage:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_exec:
             mock_exec.side_effect = CLIExecutionError("Failed")
             
-            result = await call_tool("run_tool", {
+            result = await call_tool("use_agent", {
                 "cli_name": "claude",
                 "message": "hi"
             })
@@ -65,7 +65,7 @@ class TestServerCoverage:
         with patch("other_agents_mcp.server.get_cli_registry") as mock_registry:
             mock_registry.return_value.add_cli.side_effect = Exception("Registry Error")
             
-            result = await call_tool("add_tool", {
+            result = await call_tool("add_agent", {
                 "name": "new",
                 "command": "cmd"
             })

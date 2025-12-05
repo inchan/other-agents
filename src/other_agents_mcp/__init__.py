@@ -1,4 +1,4 @@
-"""AI CLI Ping-Pong MCP Server
+"""Other Agents MCP Server
 
 MCP server for communicating with local AI CLI tools via file-based I/O.
 """

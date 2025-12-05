@@ -281,7 +281,7 @@ SessionManager는 함수 기반, CLIRegistry는 `__new__` 기반.
 ## 💡 추가 권장사항
 
 ### 13. 세션 모드 스키마에 timeout 추가
-`server.py`의 `run_tool` inputSchema에 timeout 명시
+`server.py`의 `use_agent` inputSchema에 timeout 명시
 
 ### 14. 세션 통계 및 모니터링 개선
 ```python

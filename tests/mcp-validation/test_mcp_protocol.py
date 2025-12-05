@@ -33,7 +33,7 @@ class TestListToolsHandler:
     async def test_list_tools_count(self):
         """도구가 4개인지 확인 (list_tools, run_tool, get_run_status, add_tool)"""
         tools = await list_tools()
-        assert len(tools) == 4
+        assert len(tools) == 5
 
     @pytest.mark.asyncio
     async def test_list_tools_schema_structure(self):
@@ -71,10 +71,11 @@ class TestListToolsHandler:
     async def test_list_tools_tool_definition(self):
         """list_tools 도구 정의 확인"""
         tools = await list_tools()
-        list_clis_tool = next((t for t in tools if t.name == "list_tools"), None)
+        list_clis_tool = next((t for t in tools if t.name == "list_agents"), None)
 
         assert list_clis_tool is not None
-        assert list_clis_tool.description == "설치된 AI CLI 목록 조회"
+        assert "AI CLI" in list_clis_tool.description
+        assert "claude" in list_clis_tool.description or "gemini" in list_clis_tool.description
         assert list_clis_tool.inputSchema["type"] == "object"
         assert list_clis_tool.inputSchema["properties"] == {}
 
@@ -82,10 +83,11 @@ class TestListToolsHandler:
     async def test_run_tool_tool_definition(self):
         """run_tool 도구 정의 확인"""
         tools = await list_tools()
-        run_tool_def = next((t for t in tools if t.name == "run_tool"), None)
+        run_tool_def = next((t for t in tools if t.name == "use_agent"), None)
 
         assert run_tool_def is not None
-        assert "AI CLI 도구 실행" in run_tool_def.description
+        assert "AI CLI" in run_tool_def.description
+        assert "claude" in run_tool_def.description or "codex" in run_tool_def.description
 
         # inputSchema 검증
         schema = run_tool_def.inputSchema
@@ -106,7 +108,7 @@ class TestListToolsHandler:
     async def test_get_run_status_tool_definition(self):
         """get_run_status 도구 정의 확인"""
         tools = await list_tools()
-        status_tool = next((t for t in tools if t.name == "get_run_status"), None)
+        status_tool = next((t for t in tools if t.name == "get_task_status"), None)
 
         assert status_tool is not None
         assert "비동기 실행" in status_tool.description
@@ -134,7 +136,7 @@ class TestCallToolHandler:
     async def test_call_tool_returns_dict(self):
         """call_tool이 딕셔너리를 반환하는지 확인"""
         # list_tools는 항상 성공
-        result = await call_tool("list_tools", {})
+        result = await call_tool("list_agents", {})
         assert isinstance(result, dict)
 
 

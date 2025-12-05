@@ -52,22 +52,22 @@ async def list_available_tools():
 
     return [
         Tool(
-            name="list_tools",
-            description="설치된 AI CLI 목록 조회",
+            name="list_agents",
+            description="사용 가능한 AI CLI 목록 조회. 기본 제공: claude, gemini, codex (Cursor), qwen. 각 CLI의 설치 여부와 버전 정보를 확인할 수 있습니다.",
             inputSchema={
                 "type": "object",
                 "properties": {}
             }
         ),
         Tool(
-            name="run_tool",
-            description="AI CLI 도구 실행 (동기 또는 비동기 방식)",
+            name="use_agent",
+            description="특정 AI CLI에게 프롬프트를 전송하여 응답을 받습니다. 사용 가능한 CLI: 'claude' (Claude AI), 'gemini' (Google Gemini), 'codex' (Cursor의 Codex), 'qwen' (Alibaba Qwen). 예: 'codex에게 리뷰 요청' → cli_name='codex'로 호출",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "cli_name": {
                         "type": "string",
-                        "description": "CLI 이름 (claude, gemini, codex, qwen 또는 커스텀 CLI)"
+                        "description": "실행할 AI CLI 이름. 가능한 값: 'claude', 'gemini', 'codex', 'qwen' 또는 add_agent로 추가한 커스텀 CLI"
                     },
                     "message": {
                         "type": "string",
@@ -107,21 +107,52 @@ async def list_available_tools():
             }
         ),
         Tool(
-            name="get_run_status",
-            description="비동기 실행(run_tool run_async=true)의 상태 및 결과를 조회합니다.",
+            name="use_agents",
+            description="여러 AI에게 동시에 같은 질문을 보내 다양한 관점의 답변을 받습니다. 리뷰 요청, 의견 수렴, 비교 분석에 유용합니다. 사용 가능한 CLI: claude, gemini, codex, qwen. 예: '모든 AI에게 리뷰 요청' → cli_names=['claude', 'gemini', 'codex', 'qwen'] 또는 생략",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "description": "모든 AI CLI에 전송할 프롬프트 또는 질문"
+                    },
+                    "cli_names": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "응답을 받을 AI CLI 목록 (선택사항). 예: ['claude', 'codex', 'gemini']. 생략 시 모든 사용 가능한 CLI에게 전송"
+                    },
+                    "system_prompt": {
+                        "type": "string",
+                        "description": "시스템 프롬프트 (선택사항)"
+                    },
+                    "skip_git_repo_check": {
+                        "type": "boolean",
+                        "description": "Git 저장소 체크 건너뛰기 (기본값: true)"
+                    },
+                    "timeout": {
+                        "type": "number",
+                        "description": "각 CLI의 타임아웃 초 (선택사항, 기본값: 300)"
+                    }
+                },
+                "required": ["message"]
+            }
+        ),
+        Tool(
+            name="get_task_status",
+            description="비동기 실행(use_agent run_async=true)의 상태 및 결과를 조회합니다.",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "task_id": {
                         "type": "string",
-                        "description": "run_tool로부터 받은 작업 ID"
+                        "description": "use_agent로부터 받은 작업 ID"
                     }
                 },
                 "required": ["task_id"]
             }
         ),
         Tool(
-            name="add_tool",
+            name="add_agent",
             description="동적으로 새로운 AI CLI 도구 추가 (런타임)",
             inputSchema={
                 "type": "object",
@@ -164,37 +195,6 @@ async def list_available_tools():
                 },
                 "required": ["name", "command"]
             }
-        ),
-        Tool(
-            name="run_multi_tools",
-            description="여러 AI CLI에 동시에 프롬프트를 전송하고 각 CLI의 응답을 수집 (readonly 모드, 리뷰/플랜/질문 등에 활용)",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "message": {
-                        "type": "string",
-                        "description": "모든 CLI에 전송할 프롬프트"
-                    },
-                    "cli_names": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "대상 CLI 목록 (선택사항). 미지정 시 모든 활성화된 CLI 대상"
-                    },
-                    "system_prompt": {
-                        "type": "string",
-                        "description": "시스템 프롬프트 (선택사항)"
-                    },
-                    "skip_git_repo_check": {
-                        "type": "boolean",
-                        "description": "Git 저장소 체크 건너뛰기 (기본값: true)"
-                    },
-                    "timeout": {
-                        "type": "number",
-                        "description": "각 CLI의 타임아웃 초 (선택사항, 기본값: 300)"
-                    }
-                },
-                "required": ["message"]
-            }
         )
     ]
 
@@ -202,12 +202,12 @@ async def list_available_tools():
 @app.call_tool()
 async def call_tool(name: str, arguments: Dict[str, Any]):
     """도구 실행 (비동기 처리 개선)"""
-    if name == "list_tools":
+    if name == "list_agents":
         # 비동기로 실행하여 블로킹 방지
         clis = await asyncio.to_thread(list_available_clis)
         return {"clis": [asdict(cli) for cli in clis]}
 
-    elif name == "run_tool":
+    elif name == "use_agent":
         cli_name = arguments["cli_name"]
         message = arguments["message"]
         run_async = arguments.get("run_async", False)
@@ -263,13 +263,13 @@ async def call_tool(name: str, arguments: Dict[str, Any]):
                 logger.error(f"CLI execution error: {e}")
                 return {"error": str(e), "type": "CLIExecutionError"}
 
-    elif name == "get_run_status":
+    elif name == "get_task_status":
         task_id = arguments["task_id"]
         task_manager = get_task_manager()
         status = await task_manager.get_task_status(task_id)
         return status
         
-    elif name == "add_tool":
+    elif name == "add_agent":
         # 필수 필드
         cli_name = arguments["name"]
         command = arguments["command"]
@@ -307,7 +307,7 @@ async def call_tool(name: str, arguments: Dict[str, Any]):
             logger.error(f"CLI 추가 실패: {e}")
             return {"error": str(e), "type": "AddCLIError"}
 
-    elif name == "run_multi_tools":
+    elif name == "use_agents":
         message = arguments["message"]
         cli_names = arguments.get("cli_names", None)
         system_prompt = arguments.get("system_prompt", None)
@@ -367,7 +367,7 @@ def main():
     logger.info("Other Agents MCP Server starting...")
     logger.info("MCP SDK version: 1.22.0")
     logger.info("Server name: other-agents-mcp")
-    logger.info("Available tools: list_tools, run_tool, get_run_status, add_tool, run_multi_tools")
+    logger.info("Available tools: list_agents, use_agent, use_agents, get_task_status, add_agent")
 
     # stdio 서버 시작
     from mcp.server.stdio import stdio_server

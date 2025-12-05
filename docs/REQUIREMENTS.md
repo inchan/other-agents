@@ -1,4 +1,4 @@
-# AI CLI Ping-Pong MCP Server - Requirements
+# Other Agents MCP Server - Requirements
 
 > **Status**: ✅ All Requirements Met + CLI Extensibility + Session Mode Added
 > **Last Updated**: 2025-12-02 (v2.1)
@@ -18,7 +18,7 @@
 ## Version 2.0 Features ✨
 
 **FR-006**: 동적 CLI 확장 시스템
-- `add_tool` MCP 도구 추가 (런타임 CLI 추가)
+- `add_agent` MCP 도구 추가 (런타임 CLI 추가)
 - CLI Registry 아키텍처 (3단계 병합)
 - 파일 기반 설정 지원 (`custom_clis.json`)
 - 필수/선택 필드 구분 (name, command 필수)
@@ -33,17 +33,17 @@
 **FR-001**: MCP 서버 구현
 - MCP Protocol 준수 (JSON-RPC 2.0)
 - stdio 서버 모드
-- 3개 MCP 도구 제공 (v2.0: add_tool 추가)
+- 3개 MCP 도구 제공 (v2.0: add_agent 추가)
 - **Status**: ✅ Implemented
 
-**FR-002**: CLI 목록 조회 (list_tools)
+**FR-002**: CLI 목록 조회 (list_agents)
 - 설치된 AI CLI 자동 감지 (`shutil.which`)
 - 버전 정보 조회 (`--version`)
 - CLIInfo 데이터 반환 (name, command, version, installed)
 - 4개 CLI 지원: claude, gemini, codex, qwen
 - **Status**: ✅ Implemented
 
-**FR-003**: CLI 메시지 전송 (run_tool)
+**FR-003**: CLI 메시지 전송 (use_agent)
 - 파일 기반 CLI 실행 (stdin/stdout 파이프)
 - 임시 파일 자동 관리 (UUID 기반)
 - 응답 반환
@@ -68,8 +68,8 @@
 ### Performance (Verified ✅)
 
 **NFR-001**: 응답 시간
-- `list_tools`: <2초 **(실제: <1초)** ✅
-- `run_tool` 에러 응답: <0.5초 **(실제: <0.5초)** ✅
+- `list_agents`: <2초 **(실제: <1초)** ✅
+- `use_agent` 에러 응답: <0.5초 **(실제: <0.5초)** ✅
 - 동시 5개 요청 처리: <5초 **(실제: <5초)** ✅
 - **Status**: ✅ Exceeded
 
@@ -248,7 +248,7 @@
 | FR-003 | file_handler.py:35 | test_tools_functionality.py | ✅ Verified |
 | FR-004 | config.py:14, file_handler.py:150 | test_file_handler.py | ✅ Verified |
 | FR-005 | file_handler.py:48, config.py:42 | test_file_handler.py | ✅ Verified |
-| FR-006 | cli_registry.py, server.py:add_tool | test_cli_registry.py | ✅ Verified |
+| FR-006 | cli_registry.py, server.py:add_agent | test_cli_registry.py | ✅ Verified |
 | FR-007 | session_manager.py, file_handler.py:336 | test_session_mode.py | ✅ Verified (16 tests) |
 | NFR-001 | server.py:70 | test_e2e_scenarios.py | ✅ Verified |
 | NFR-002 | collect_metrics.py | validation_metrics.json | ✅ Verified |

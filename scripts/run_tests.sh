@@ -2,15 +2,12 @@
 
 set -e  # Exit on error
 
-PORT=8080
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-
 cd "$PROJECT_ROOT"
 
 # Function to find Python 3.10+
 find_python() {
-  # Check common locations for Python 3.10+
   local python_paths=(
     "/opt/homebrew/bin/python3"
     "/usr/local/bin/python3"
@@ -36,7 +33,6 @@ find_python() {
   return 1
 }
 
-# Find suitable Python
 echo "🔍 Checking Python version..."
 PYTHON_CMD=$(find_python)
 if [ $? -ne 0 ]; then
@@ -55,38 +51,33 @@ if [ ! -d "venv" ]; then
   "$PYTHON_CMD" -m venv venv
 fi
 
-# Activate and install dependencies
-echo "📥 Installing dependencies..."
-./venv/bin/pip install --upgrade pip -q
-./venv/bin/pip install -e . -q
-
-# Check if port is in use
-PID=$(lsof -ti :$PORT 2>/dev/null || true)
-
-if [ ! -z "$PID" ]; then
-  echo "⚠️  Port $PORT is already in use by process $PID."
-  lsof -i :$PORT
-  echo ""
-  read -p "Do you want to kill this process to free up port $PORT? (y/N) " response
-
-  if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-    echo "Killing process $PID..."
-    kill -9 $PID
-    sleep 1
-    echo "Process killed. Port $PORT is now free."
-  else
-    echo "Operation cancelled. Cannot start MCP Inspector on port $PORT."
-    exit 1
-  fi
+# Check if pytest is installed
+if ! ./venv/bin/python -m pytest --version &> /dev/null; then
+  echo "📥 Installing development dependencies..."
+  ./venv/bin/pip install --upgrade pip -q
+  ./venv/bin/pip install -e ".[dev]" -q
+  echo "✅ Dependencies installed"
 fi
 
 echo ""
-echo "🚀 Starting MCP Inspector with Other Agents MCP server..."
-echo "Access the inspector at: http://localhost:$PORT"
-echo "Press Ctrl+C to stop the server."
+echo "🧪 Running tests with coverage (parallel execution with pytest-xdist)..."
 echo ""
 
-npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
+# CPU 코어 수 감지
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # macOS
+  CPU_COUNT=$(sysctl -n hw.ncpu)
+else
+  # Linux
+  CPU_COUNT=$(nproc)
+fi
+
+echo "🔧 Using $CPU_COUNT CPU cores for parallel execution"
+echo ""
+
+# Run tests with coverage and parallel execution
+# -n auto: CPU 코어 수만큼 자동으로 워커 생성
+./venv/bin/pytest -v --cov=src/other_agents_mcp --cov-report=term-missing -n auto
 
 echo ""
-echo "MCP Inspector stopped."
+echo "✅ Test execution completed"

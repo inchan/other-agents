@@ -1,17 +1,41 @@
-# AI CLI Ping-Pong MCP Server
+# Other Agents MCP Server
 
 > **Version 2.1** - Session Mode Support
 
 MCP (Model Context Protocol) 서버로 로컬에 설치된 AI CLI 도구들과 **파일 기반**으로 통신합니다.
 
+## 🎯 Quick Start - 사용 예시
+
+Claude Code에서 자연어로 다른 AI에게 작업을 요청할 수 있습니다:
+
+```
+"codex에게 이 코드 리뷰 요청해줘"
+→ use_agent(cli_name="codex", message="...")
+
+"gemini한테 물어봐줘: 이 함수 최적화 방법은?"
+→ use_agent(cli_name="gemini", message="...")
+
+"claude, gemini, codex 모두에게 의견 물어봐"
+→ use_agents(cli_names=["claude", "gemini", "codex"], message="...")
+
+"모든 AI에게 리뷰 요청"
+→ use_agents(message="...", cli_names 생략)
+```
+
+### 지원하는 AI CLI
+- **claude** - Claude AI
+- **gemini** - Google Gemini
+- **codex** - Cursor의 Codex
+- **qwen** - Alibaba Qwen
+
 ## ✨ Features
 
 ### Core Features
-- ✅ **list_tools**: 설치된 AI CLI 도구 목록 조회
-- ✅ **run_tool**: AI CLI에 메시지 보내고 응답 받기 (동기 방식)
-- ✅ **비동기 작업 실행**: `start_run_tool`와 `get_run_status`를 통해 긴 작업을 백그라운드에서 처리
+- ✅ **list_agents**: 설치된 AI CLI 도구 목록 조회
+- ✅ **use_agent**: AI CLI에 메시지 보내고 응답 받기 (동기 방식)
+- ✅ **비동기 작업 실행**: `use_agent(run_async=true)`와 `get_task_status`를 통해 긴 작업을 백그라운드에서 처리
 - ✅ **영속적 작업 저장소**: SQLite를 사용하여 서버가 재시작되어도 작업 상태 유지 (선택 사항)
-- ✅ **add_tool**: 런타임에 새로운 AI CLI 추가 (v2.0)
+- ✅ **add_agent**: 런타임에 새로운 AI CLI 추가 (v2.0)
 - ✅ **다양한 CLI 지원**: Claude, Gemini, Codex, Qwen 등 주요 AI 코딩 CLI 도구 지원
 
 ### v2.1 New: Session Mode 🎉
@@ -209,24 +233,24 @@ python -m other_agents_mcp.server
 
 ### Available Tools (MCP)
 
-#### `list_tools`
+#### `list_agents`
 
 서버에 설정된 CLI 도구 목록과 설치 상태를 반환합니다.
 
 ```json
 {
-  "name": "list_tools"
+  "name": "list_agents"
 }
 ```
 
-#### `run_tool`
+#### `use_agent`
 
 AI CLI에 메시지를 보내고 응답이 올 때까지 대기하는 **동기(Synchronous)** 방식입니다. 간단하고 빠른 작업에 적합합니다.
 
 **Stateless 모드 (기본)**:
 ```json
 {
-  "name": "run_tool",
+  "name": "use_agent",
   "arguments": {
     "cli_name": "claude",
     "message": "Write a hello world function"
@@ -237,7 +261,7 @@ AI CLI에 메시지를 보내고 응답이 올 때까지 대기하는 **동기(S
 **Session 모드 (v2.1 NEW)** 🎉:
 ```json
 {
-  "name": "run_tool",
+  "name": "use_agent",
   "arguments": {
     "cli_name": "claude",
     "message": "파일 20~30번 분석해줘",
@@ -249,7 +273,7 @@ AI CLI에 메시지를 보내고 응답이 올 때까지 대기하는 **동기(S
 **Session 이어가기**:
 ```json
 {
-  "name": "run_tool",
+  "name": "use_agent",
   "arguments": {
     "cli_name": "claude",
     "message": "25번 파일은 몇 번째였지?",
@@ -264,7 +288,7 @@ AI CLI에 메시지를 보내고 응답이 올 때까지 대기하는 **동기(S
 
 ```json
 {
-  "name": "run_tool",
+  "name": "use_agent",
   "arguments": {
     "cli_name": "claude",
     "message": "Write a python script that analyzes a large CSV file.",
@@ -273,25 +297,25 @@ AI CLI에 메시지를 보내고 응답이 올 때까지 대기하는 **동기(S
 }
 ```
 
-#### `get_run_status`
+#### `get_task_status`
 
 비동기 모드(`run_async=true`)로 시작된 작업의 상태를 조회합니다. 작업이 완료될 때까지 주기적으로 호출(polling)해야 합니다.
 
 ```json
 {
-  "name": "get_run_status",
+  "name": "get_task_status",
   "arguments": {
     "task_id": "<your-task-id>"
   }
 }
 ```
 
-#### `add_tool`
+#### `add_agent`
 런타임에 새로운 AI CLI 설정을 동적으로 추가합니다.
 
 ```json
 {
-  "name": "add_tool",
+  "name": "add_agent",
   "arguments": {
     "name": "my-custom-cli",
     "command": "my-cli-command"
@@ -313,13 +337,13 @@ AI CLI에 메시지를 보내고 응답이 올 때까지 대기하는 **동기(S
 **세션 모드 예시**:
 ```python
 # 첫 요청: 분석 시작
-run_tool(cli_name="claude", message="프로젝트 분석", session_id="proj-a")
+use_agent(cli_name="claude", message="프로젝트 분석", session_id="proj-a")
 
 # 후속 요청: 이전 분석 재사용
-run_tool(cli_name="claude", message="버그는?", session_id="proj-a", resume=True)
+use_agent(cli_name="claude", message="버그는?", session_id="proj-a", resume=True)
 
 # 다른 세션: 동시 진행 가능
-run_tool(cli_name="gemini", message="다른 작업", session_id="proj-b")
+use_agent(cli_name="gemini", message="다른 작업", session_id="proj-b")
 ```
 
 ## License

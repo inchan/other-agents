@@ -59,4 +59,4 @@ class TestMainFunction:
             assert any("Other Agents MCP Server starting" in msg for msg in log_messages)
             assert any("MCP SDK version: 1.22.0" in msg for msg in log_messages)
             assert any("Server name: other-agents-mcp" in msg for msg in log_messages)
-            assert any("run_multi_tools" in msg for msg in log_messages)
+            assert any("use_agents" in msg for msg in log_messages)

@@ -1,4 +1,4 @@
-# AI CLI Ping-Pong MCP Server - Architecture
+# Other Agents MCP Server - Architecture
 
 > **Last Updated:** 2025-11-30
 > **Status:** ✅ Implementation Complete, Production Ready
@@ -132,7 +132,7 @@ class CLIInfo:
     version: Optional[str]
     installed: bool
 
-def list_tools() -> List[CLIInfo]:
+def list_agents() -> List[CLIInfo]:
     """설치된 CLI 목록 반환"""
 
 def get_cli_version(command: str) -> Optional[str]:
@@ -227,16 +227,16 @@ from mcp.server.stdio import stdio_server
 
 app = Server("other-agents-mcp")
 
-@app.list_tools()
-async def list_tools():
+@app.list_agents()
+async def list_agents():
     return [
         {
-            "name": "list_tools",
+            "name": "list_agents",
             "description": "설치된 AI CLI 목록 조회",
             "inputSchema": {"type": "object", "properties": {}}
         },
         {
-            "name": "run_tool",
+            "name": "use_agent",
             "description": "AI CLI에 메시지 전송 (파일 기반)",
             "inputSchema": {
                 "type": "object",
@@ -251,10 +251,10 @@ async def list_tools():
 
 @app.call_tool()
 async def call_tool(name: str, arguments: Dict):
-    if name == "list_tools":
-        clis = list_tools()
+    if name == "list_agents":
+        clis = list_agents()
         return {"clis": [cli.__dict__ for cli in clis]}
-    elif name == "run_tool":
+    elif name == "use_agent":
         response = execute_cli_file_based(
             arguments["cli_name"],
             arguments["message"]
@@ -381,7 +381,7 @@ if __name__ == "__main__":
 - [x] `CLI_CONFIGS` 딕셔너리에 4개 CLI 정의
 
 ### Phase 2 (Track A) ✅
-- [x] `list_tools()` 함수 존재
+- [x] `list_agents()` 함수 존재
 - [x] claude, gemini, codex는 installed=True
 - [x] 각 CLI의 version 조회 (또는 None)
 - [x] `pytest tests/test_cli_manager.py -v` 통과
@@ -396,8 +396,8 @@ if __name__ == "__main__":
 ### Phase 3 ✅
 - [x] `python -m other_agents_mcp.server` 실행 가능
 - [x] MCP 클라이언트 연결 성공
-- [x] list_tools 도구 호출 시 JSON 응답
-- [x] run_tool 도구 호출 시 실제 CLI 응답 반환
+- [x] list_agents 도구 호출 시 JSON 응답
+- [x] use_agent 도구 호출 시 실제 CLI 응답 반환
 - [x] `pytest -v --cov` 전체 통과 (커버리지 86.5%, 목표 80% 초과)
 
 ---

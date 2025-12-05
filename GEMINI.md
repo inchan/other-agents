@@ -1,4 +1,4 @@
-# AI CLI Ping-Pong MCP Server
+# Other Agents MCP Server
 
 ## Project Overview
 **Type:** Python / MCP Server (Model Context Protocol)
@@ -13,7 +13,7 @@
 
 ## Architecture
 The data flow follows this path:
-1.  **MCP Client:** Sends a request (e.g., `run_tool`) via JSON-RPC over stdio.
+1.  **MCP Client:** Sends a request (e.g., `use_agent`) via JSON-RPC over stdio.
 2.  **MCP Server (`other_agents_mcp`):** Receives the request and validates it.
 3.  **File Handler:** Writes the message to a temporary input file.
 4.  **CLI Execution:** The server executes the target CLI tool, pointing it to the input file.
@@ -21,7 +21,7 @@ The data flow follows this path:
 
 ## Directory Structure
 - `src/other_agents_mcp/`: Source code for the server.
-    - `server.py`: Main entry point and tool definitions (`list_tools`, `call_tool`).
+    - `server.py`: Main entry point and tool definitions (`list_agents`, `call_tool`).
     - `cli_manager.py`: Manages available CLI tools.
     - `file_handler.py`: Handles the file-based communication logic.
     - `cli_registry.py`: Dynamic registry for CLI configurations.
@@ -83,10 +83,10 @@ pytest tests/mcp-validation/ -v
 - **Gemini Context:** Use `GEMINI.md` (this file) to understand the project context.
 
 ## Available Tools (MCP)
-1.  `list_tools`: Returns a list of installed and configured AI CLI tools.
-2.  `run_tool`: Sends a prompt to a specific CLI.
+1.  `list_agents`: Returns a list of installed and configured AI CLI tools.
+2.  `use_agent`: Sends a prompt to a specific CLI.
     - Args: `cli_name` (str), `message` (str), `system_prompt` (optional), `skip_git_repo_check` (optional bool), `args` (optional list).
-3.  `add_tool`: Dynamically adds a new CLI tool configuration at runtime.
+3.  `add_agent`: Dynamically adds a new CLI tool configuration at runtime.
 
 ## Critical Rules for AI Agents
 1.  **Do not break existing tests:** Run `pytest` after any modification.

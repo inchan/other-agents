@@ -108,7 +108,7 @@ qwen --resume latest
 ```
 MCP Client
     ↓
-    run_tool({
+    use_agent({
         session_id: "user-defined-id",
         resume: true
     })
