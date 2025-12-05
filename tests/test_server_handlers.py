@@ -17,6 +17,33 @@ from ai_cli_mcp.file_handler import (
 from ai_cli_mcp.task_manager import TaskManager, get_task_manager, InMemoryStorage, TaskStatus # type: ignore
 
 
+class TestServerInitialization:
+    """서버 초기화 및 툴 정의 테스트"""
+
+    @pytest.mark.asyncio
+    async def test_list_available_tools(self):
+        """list_available_tools가 모든 툴을 올바르게 정의"""
+        from ai_cli_mcp.server import list_available_tools
+
+        tools = await list_available_tools()
+
+        # 5개 툴 확인
+        assert len(tools) == 5
+
+        tool_names = [tool.name for tool in tools]
+        assert "list_tools" in tool_names
+        assert "run_tool" in tool_names
+        assert "get_run_status" in tool_names
+        assert "add_tool" in tool_names
+        assert "run_multi_tools" in tool_names
+
+        # run_multi_tools 스키마 검증
+        run_multi_tools_tool = next(t for t in tools if t.name == "run_multi_tools")
+        assert "message" in run_multi_tools_tool.inputSchema["properties"]
+        assert "cli_names" in run_multi_tools_tool.inputSchema["properties"]
+        assert run_multi_tools_tool.inputSchema["required"] == ["message"]
+
+
 class TestCallToolListAvailableCLIs:
     """list_tools 도구 핸들러 테스트"""
 
@@ -191,6 +218,37 @@ class TestCallToolRunTool:
             assert "error" in result
             assert result["type"] == "CLIExecutionError"
             assert "실패" in result["error"]
+
+    @pytest.mark.asyncio
+    async def test_call_tool_run_tool_session_validation_error(self):
+        """세션 검증 에러 처리"""
+        with patch("ai_cli_mcp.server.execute_with_session") as mock_execute:
+            mock_execute.side_effect = ValueError("Invalid session ID format")
+
+            result = await call_tool("run_tool", {
+                "cli_name": "claude",
+                "message": "Test",
+                "session_id": "invalid_id"
+            })
+
+            assert "error" in result
+            assert result["type"] == "SessionValidationError"
+            assert "Invalid session ID" in result["error"]
+
+    @pytest.mark.asyncio
+    async def test_call_tool_run_tool_timeout_error(self):
+        """타임아웃 에러 처리 (동기)"""
+        with patch("ai_cli_mcp.server.execute_cli_file_based") as mock_execute:
+            mock_execute.side_effect = CLITimeoutError("CLI 타임아웃 (300초)")
+
+            result = await call_tool("run_tool", {
+                "cli_name": "claude",
+                "message": "Request",
+            })
+
+            assert "error" in result
+            assert result["type"] == "CLITimeoutError"
+            assert "타임아웃" in result["error"]
 
 
 class TestCallToolGetRunStatus:
@@ -617,6 +675,30 @@ class TestCallToolRunMultiTools:
             assert len(result["responses"]) == 1
             assert "claude" in result["responses"]
             assert result["responses"]["claude"]["success"] is True
+
+    @pytest.mark.asyncio
+    async def test_run_multi_tools_unexpected_error(self):
+        """예상치 못한 에러 처리"""
+        def mock_execute(cli_name, *args, **kwargs):
+            if cli_name == "claude":
+                return "Success"
+            elif cli_name == "error_cli":
+                raise RuntimeError("Unexpected runtime error")
+            return "Success"
+
+        with patch("ai_cli_mcp.server.execute_cli_file_based", side_effect=mock_execute):
+            result = await call_tool("run_multi_tools", {
+                "message": "Test",
+                "cli_names": ["claude", "error_cli"]
+            })
+
+            # claude는 성공
+            assert result["responses"]["claude"]["success"] is True
+
+            # error_cli는 UnexpectedError
+            assert result["responses"]["error_cli"]["success"] is False
+            assert result["responses"]["error_cli"]["type"] == "UnexpectedError"
+            assert "Unexpected runtime error" in result["responses"]["error_cli"]["error"]
 
 
 class TestCallToolEdgeCases:
