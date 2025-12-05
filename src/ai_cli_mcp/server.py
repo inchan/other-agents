@@ -164,6 +164,37 @@ async def list_available_tools():
                 },
                 "required": ["name", "command"]
             }
+        ),
+        Tool(
+            name="run_multi_tools",
+            description="여러 AI CLI에 동시에 프롬프트를 전송하고 각 CLI의 응답을 수집 (readonly 모드, 리뷰/플랜/질문 등에 활용)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "description": "모든 CLI에 전송할 프롬프트"
+                    },
+                    "cli_names": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "대상 CLI 목록 (선택사항). 미지정 시 모든 활성화된 CLI 대상"
+                    },
+                    "system_prompt": {
+                        "type": "string",
+                        "description": "시스템 프롬프트 (선택사항)"
+                    },
+                    "skip_git_repo_check": {
+                        "type": "boolean",
+                        "description": "Git 저장소 체크 건너뛰기 (기본값: true)"
+                    },
+                    "timeout": {
+                        "type": "number",
+                        "description": "각 CLI의 타임아웃 초 (선택사항, 기본값: 300)"
+                    }
+                },
+                "required": ["message"]
+            }
         )
     ]
 
@@ -276,6 +307,56 @@ async def call_tool(name: str, arguments: Dict[str, Any]):
             logger.error(f"CLI 추가 실패: {e}")
             return {"error": str(e), "type": "AddCLIError"}
 
+    elif name == "run_multi_tools":
+        message = arguments["message"]
+        cli_names = arguments.get("cli_names", None)
+        system_prompt = arguments.get("system_prompt", None)
+        skip_git_repo_check = arguments.get("skip_git_repo_check", True)
+        timeout = arguments.get("timeout", None)
+
+        # CLI 목록 결정: 지정되지 않은 경우 모든 활성화된 CLI
+        if cli_names is None:
+            clis = await asyncio.to_thread(list_available_clis)
+            cli_names = [cli.name for cli in clis]
+            logger.info(f"대상 CLI 목록(전체): {cli_names}")
+        else:
+            logger.info(f"대상 CLI 목록(지정): {cli_names}")
+
+        # 병렬 실행 함수
+        async def run_single_cli(cli_name: str) -> tuple[str, dict]:
+            """단일 CLI를 실행하고 결과 반환"""
+            try:
+                execution_func = functools.partial(
+                    execute_cli_file_based,
+                    cli_name, message, skip_git_repo_check, system_prompt, [], timeout
+                )
+                response = await asyncio.to_thread(execution_func)
+                return (cli_name, {"response": response, "success": True})
+            except CLINotFoundError as e:
+                logger.warning(f"CLI '{cli_name}' not found: {e}")
+                return (cli_name, {"error": str(e), "type": "CLINotFoundError", "success": False})
+            except CLITimeoutError as e:
+                logger.warning(f"CLI '{cli_name}' timeout: {e}")
+                return (cli_name, {"error": str(e), "type": "CLITimeoutError", "success": False})
+            except CLIExecutionError as e:
+                logger.warning(f"CLI '{cli_name}' execution error: {e}")
+                return (cli_name, {"error": str(e), "type": "CLIExecutionError", "success": False})
+            except Exception as e:
+                logger.error(f"CLI '{cli_name}' unexpected error: {e}")
+                return (cli_name, {"error": str(e), "type": "UnexpectedError", "success": False})
+
+        # 모든 CLI를 병렬로 실행
+        tasks = [run_single_cli(cli_name) for cli_name in cli_names]
+        results = await asyncio.gather(*tasks)
+
+        # 결과를 딕셔너리로 변환
+        responses = {cli_name: result for cli_name, result in results}
+
+        return {
+            "prompt": message,
+            "responses": responses
+        }
+
     else:
         logger.warning(f"Unknown tool: {name}")
         return {"error": f"Unknown tool: {name}"}
@@ -286,7 +367,7 @@ def main():
     logger.info("AI CLI Ping-Pong MCP Server starting...")
     logger.info("MCP SDK version: 1.22.0")
     logger.info("Server name: ai-cli-mcp")
-    logger.info("Available tools: list_tools, run_tool, get_run_status, add_tool")
+    logger.info("Available tools: list_tools, run_tool, get_run_status, add_tool, run_multi_tools")
 
     # stdio 서버 시작
     from mcp.server.stdio import stdio_server

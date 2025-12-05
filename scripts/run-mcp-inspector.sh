@@ -28,6 +28,6 @@ echo "Starting MCP Inspector with AI CLI Ping-Pong server..."
 echo "Access the inspector at: http://localhost:$PORT"
 echo "Press Ctrl+C to stop the server."
 
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./.venv/bin/python -m ai_cli_mcp.server
 
 echo "MCP Inspector stopped."

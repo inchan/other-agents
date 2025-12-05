@@ -376,6 +376,249 @@ class TestCallToolErrorHandling:
 
 
 # 엣지 케이스 테스트
+class TestCallToolRunMultiTools:
+    """run_multi_tools 도구 핸들러 테스트"""
+
+    @pytest.mark.asyncio
+    async def test_run_multi_tools_default_all_clis(self):
+        """cli_names 미지정 시 모든 CLI에 전송"""
+        with patch("ai_cli_mcp.server.execute_cli_file_based") as mock_execute:
+            mock_execute.return_value = "Response from CLI"
+
+            result = await call_tool("run_multi_tools", {
+                "message": "Review this code"
+            })
+
+            # 응답 구조 검증
+            assert "prompt" in result
+            assert "responses" in result
+            assert result["prompt"] == "Review this code"
+            assert isinstance(result["responses"], dict)
+
+            # 기본 CLI들이 호출되었는지 확인
+            assert len(result["responses"]) > 0
+
+            # 각 응답이 성공 형태인지 확인
+            for cli_name, response in result["responses"].items():
+                assert "success" in response
+                if response["success"]:
+                    assert "response" in response
+                    assert response["response"] == "Response from CLI"
+
+    @pytest.mark.asyncio
+    async def test_run_multi_tools_specified_clis(self):
+        """cli_names 지정 시 해당 CLI들에만 전송"""
+        with patch("ai_cli_mcp.server.execute_cli_file_based") as mock_execute:
+            mock_execute.return_value = "Specific response"
+
+            result = await call_tool("run_multi_tools", {
+                "message": "Plan this feature",
+                "cli_names": ["claude", "gemini"]
+            })
+
+            assert "responses" in result
+            assert len(result["responses"]) == 2
+            assert "claude" in result["responses"]
+            assert "gemini" in result["responses"]
+
+            # 각 CLI의 응답 검증
+            for cli_name in ["claude", "gemini"]:
+                cli_result = result["responses"][cli_name]
+                assert cli_result["success"] is True
+                assert cli_result["response"] == "Specific response"
+
+    @pytest.mark.asyncio
+    async def test_run_multi_tools_parallel_execution(self):
+        """병렬 실행 확인 - 모든 CLI가 동시에 실행됨"""
+        call_times = []
+
+        def mock_execute(*args, **kwargs):
+            call_times.append(time.time())
+            time.sleep(0.1)  # 각 CLI가 0.1초 걸린다고 가정
+            return f"Response from {args[0]}"
+
+        with patch("ai_cli_mcp.server.execute_cli_file_based", side_effect=mock_execute):
+            start_time = time.time()
+
+            result = await call_tool("run_multi_tools", {
+                "message": "Test parallel",
+                "cli_names": ["claude", "gemini", "codex"]
+            })
+
+            elapsed_time = time.time() - start_time
+
+            # 병렬 실행되므로 3개가 순차 실행(0.3초)보다 빨라야 함
+            # 실제로는 ~0.1초에 가까워야 하지만 여유를 두어 0.25초 이하로 검증
+            assert elapsed_time < 0.25
+
+            # 모든 CLI가 호출됨
+            assert len(result["responses"]) == 3
+
+    @pytest.mark.asyncio
+    async def test_run_multi_tools_with_system_prompt(self):
+        """시스템 프롬프트 전달"""
+        with patch("ai_cli_mcp.server.execute_cli_file_based") as mock_execute:
+            mock_execute.return_value = "Response"
+
+            result = await call_tool("run_multi_tools", {
+                "message": "Explain this",
+                "cli_names": ["claude"],
+                "system_prompt": "You are a code reviewer"
+            })
+
+            # execute_cli_file_based가 system_prompt와 함께 호출되었는지 확인
+            call_args = mock_execute.call_args
+            # system_prompt는 4번째 위치 인자 (cli_name, message, skip_git_repo_check, system_prompt)
+            assert call_args.args[3] == "You are a code reviewer" or \
+                   call_args.kwargs.get("system_prompt") == "You are a code reviewer"
+
+    @pytest.mark.asyncio
+    async def test_run_multi_tools_with_timeout(self):
+        """타임아웃 설정 전달"""
+        with patch("ai_cli_mcp.server.execute_cli_file_based") as mock_execute:
+            mock_execute.return_value = "Response"
+
+            result = await call_tool("run_multi_tools", {
+                "message": "Quick task",
+                "cli_names": ["claude"],
+                "timeout": 60
+            })
+
+            # timeout이 전달되었는지 확인 (마지막 인자)
+            call_args = mock_execute.call_args
+            assert call_args.args[-1] == 60 or call_args.kwargs.get("timeout") == 60
+
+    @pytest.mark.asyncio
+    async def test_run_multi_tools_cli_not_found_error(self):
+        """일부 CLI가 설치되지 않은 경우"""
+        def mock_execute(cli_name, *args, **kwargs):
+            if cli_name == "claude":
+                return "Success"
+            elif cli_name == "nonexistent":
+                raise CLINotFoundError(f"{cli_name}가 설치되지 않았습니다")
+            return "Success"
+
+        with patch("ai_cli_mcp.server.execute_cli_file_based", side_effect=mock_execute):
+            result = await call_tool("run_multi_tools", {
+                "message": "Test",
+                "cli_names": ["claude", "nonexistent"]
+            })
+
+            # claude는 성공
+            assert result["responses"]["claude"]["success"] is True
+            assert result["responses"]["claude"]["response"] == "Success"
+
+            # nonexistent는 실패
+            assert result["responses"]["nonexistent"]["success"] is False
+            assert result["responses"]["nonexistent"]["type"] == "CLINotFoundError"
+            assert "설치되지 않았습니다" in result["responses"]["nonexistent"]["error"]
+
+    @pytest.mark.asyncio
+    async def test_run_multi_tools_timeout_error(self):
+        """일부 CLI가 타임아웃"""
+        def mock_execute(cli_name, *args, **kwargs):
+            if cli_name == "claude":
+                return "Quick response"
+            elif cli_name == "slow_cli":
+                raise CLITimeoutError(f"{cli_name} 타임아웃")
+            return "Response"
+
+        with patch("ai_cli_mcp.server.execute_cli_file_based", side_effect=mock_execute):
+            result = await call_tool("run_multi_tools", {
+                "message": "Test",
+                "cli_names": ["claude", "slow_cli"]
+            })
+
+            # claude는 성공
+            assert result["responses"]["claude"]["success"] is True
+
+            # slow_cli는 타임아웃
+            assert result["responses"]["slow_cli"]["success"] is False
+            assert result["responses"]["slow_cli"]["type"] == "CLITimeoutError"
+
+    @pytest.mark.asyncio
+    async def test_run_multi_tools_execution_error(self):
+        """일부 CLI 실행 에러"""
+        def mock_execute(cli_name, *args, **kwargs):
+            if cli_name == "claude":
+                return "Success"
+            elif cli_name == "broken_cli":
+                raise CLIExecutionError(f"{cli_name} 실행 실패")
+            return "Success"
+
+        with patch("ai_cli_mcp.server.execute_cli_file_based", side_effect=mock_execute):
+            result = await call_tool("run_multi_tools", {
+                "message": "Test",
+                "cli_names": ["claude", "broken_cli"]
+            })
+
+            # claude는 성공
+            assert result["responses"]["claude"]["success"] is True
+
+            # broken_cli는 실패
+            assert result["responses"]["broken_cli"]["success"] is False
+            assert result["responses"]["broken_cli"]["type"] == "CLIExecutionError"
+
+    @pytest.mark.asyncio
+    async def test_run_multi_tools_mixed_results(self):
+        """성공/실패가 섞인 결과"""
+        def mock_execute(cli_name, *args, **kwargs):
+            responses = {
+                "claude": "Claude response",
+                "gemini": CLINotFoundError("gemini not found"),
+                "codex": "Codex response",
+                "qwen": CLITimeoutError("qwen timeout")
+            }
+            result = responses.get(cli_name, "Default")
+            if isinstance(result, Exception):
+                raise result
+            return result
+
+        with patch("ai_cli_mcp.server.execute_cli_file_based", side_effect=mock_execute):
+            result = await call_tool("run_multi_tools", {
+                "message": "Review code",
+                "cli_names": ["claude", "gemini", "codex", "qwen"]
+            })
+
+            # 성공 케이스
+            assert result["responses"]["claude"]["success"] is True
+            assert result["responses"]["codex"]["success"] is True
+
+            # 실패 케이스
+            assert result["responses"]["gemini"]["success"] is False
+            assert result["responses"]["qwen"]["success"] is False
+
+    @pytest.mark.asyncio
+    async def test_run_multi_tools_empty_cli_list(self):
+        """빈 CLI 목록"""
+        with patch("ai_cli_mcp.server.list_available_clis") as mock_list:
+            # 빈 목록 반환
+            mock_list.return_value = []
+
+            result = await call_tool("run_multi_tools", {
+                "message": "Test"
+            })
+
+            # 응답은 있지만 비어있음
+            assert "responses" in result
+            assert len(result["responses"]) == 0
+
+    @pytest.mark.asyncio
+    async def test_run_multi_tools_single_cli(self):
+        """단일 CLI만 지정"""
+        with patch("ai_cli_mcp.server.execute_cli_file_based") as mock_execute:
+            mock_execute.return_value = "Single response"
+
+            result = await call_tool("run_multi_tools", {
+                "message": "Test",
+                "cli_names": ["claude"]
+            })
+
+            assert len(result["responses"]) == 1
+            assert "claude" in result["responses"]
+            assert result["responses"]["claude"]["success"] is True
+
+
 class TestCallToolEdgeCases:
     """엣지 케이스 테스트"""
 
