@@ -113,7 +113,7 @@ MCP Client
         resume: true
     })
     ↓
-MCP Server (ai-cli-ping-pong)
+MCP Server (other-agents)
     ↓
 Session Manager
     ├─ session_id → CLI session mapping

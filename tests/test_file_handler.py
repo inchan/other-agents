@@ -5,7 +5,7 @@ import tempfile
 import pytest
 from pathlib import Path
 
-from ai_cli_mcp.file_handler import (
+from other_agents_mcp.file_handler import (
     execute_cli_file_based,
     CLINotFoundError,
     CLITimeoutError,
@@ -64,9 +64,9 @@ class TestExecuteCliFileBased:
 
         after_files = set(os.listdir(temp_dir))
 
-        # ai_cli_mcp 관련 임시 파일이 남아있지 않아야 함
+        # other_agents_mcp 관련 임시 파일이 남아있지 않아야 함
         new_files = after_files - before_files
-        mcp_temp_files = [f for f in new_files if "ai_cli_mcp" in f]
+        mcp_temp_files = [f for f in new_files if "other_agents_mcp" in f]
 
         assert len(mcp_temp_files) == 0, \
             f"임시 파일이 정리되지 않음: {mcp_temp_files}"
@@ -141,7 +141,7 @@ class TestTimeout:
         # 여기서는 타임아웃 기능이 구현되어 있는지만 확인
 
         # config에 매우 짧은 타임아웃 설정
-        from ai_cli_mcp import config
+        from other_agents_mcp import config
 
         # claude CLI 사용 (config에 존재)
         original_timeout = config.CLI_CONFIGS["claude"]["timeout"]

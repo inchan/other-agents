@@ -282,7 +282,7 @@ tests/mcp-validation/
 1. **로컬 개발 환경**
    ```bash
    # MCP Inspector
-   npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+   npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
    ```
 
 2. **Claude Code 통합**

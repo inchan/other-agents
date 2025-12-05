@@ -4,7 +4,7 @@ MCP 서버가 Model Context Protocol 스펙을 올바르게 구현하는지 검�
 """
 
 import pytest
-from ai_cli_mcp.server import app, list_available_tools as list_tools, call_tool
+from other_agents_mcp.server import app, list_available_tools as list_tools, call_tool
 
 
 class TestMCPServerInitialization:
@@ -17,7 +17,7 @@ class TestMCPServerInitialization:
 
     def test_server_name(self):
         """서버 이름이 올바른지 확인"""
-        assert app.name == "ai-cli-mcp"
+        assert app.name == "other-agents-mcp"
 
 
 class TestListToolsHandler:

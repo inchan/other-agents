@@ -1,7 +1,7 @@
 """Tests for config module"""
 
 import pytest
-from ai_cli_mcp.config import CLI_CONFIGS
+from other_agents_mcp.config import CLI_CONFIGS
 
 
 class TestCLIConfigs:

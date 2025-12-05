@@ -7,8 +7,8 @@ import pytest
 import asyncio
 from unittest.mock import patch, AsyncMock, MagicMock
 
-from ai_cli_mcp.server import app, main
-from ai_cli_mcp.task_manager import get_task_manager, TaskManager
+from other_agents_mcp.server import app, main
+from other_agents_mcp.task_manager import get_task_manager, TaskManager
 
 
 class TestServerLifecycle:
@@ -28,7 +28,7 @@ class TestMainFunction:
 
     def test_main_function_imports_and_calls_asyncio_run(self):
         """main()이 asyncio.run을 호출"""
-        with patch("ai_cli_mcp.server.asyncio.run") as mock_run:
+        with patch("other_agents_mcp.server.asyncio.run") as mock_run:
             # asyncio.run을 모킹하여 실제 서버 시작 방지
             mock_run.return_value = None
 
@@ -45,7 +45,7 @@ class TestMainFunction:
 
     def test_main_function_logs_startup_info(self, caplog):
         """main()이 시작 정보를 로깅"""
-        with patch("ai_cli_mcp.server.asyncio.run") as mock_run:
+        with patch("other_agents_mcp.server.asyncio.run") as mock_run:
             # asyncio.run을 모킹하여 실제 서버 시작 방지
             mock_run.return_value = None
 
@@ -56,7 +56,7 @@ class TestMainFunction:
 
             # 로그 메시지 확인
             log_messages = [record.message for record in caplog.records]
-            assert any("AI CLI Ping-Pong MCP Server starting" in msg for msg in log_messages)
+            assert any("Other Agents MCP Server starting" in msg for msg in log_messages)
             assert any("MCP SDK version: 1.22.0" in msg for msg in log_messages)
-            assert any("Server name: ai-cli-mcp" in msg for msg in log_messages)
+            assert any("Server name: other-agents-mcp" in msg for msg in log_messages)
             assert any("run_multi_tools" in msg for msg in log_messages)

@@ -6,8 +6,8 @@
 import asyncio
 import os
 import pytest
-from ai_cli_mcp.cli_registry import CLIRegistry
-from ai_cli_mcp.task_manager import get_task_manager, TaskManager
+from other_agents_mcp.cli_registry import CLIRegistry
+from other_agents_mcp.task_manager import get_task_manager, TaskManager
 
 
 @pytest.fixture(autouse=True)

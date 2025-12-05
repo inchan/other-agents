@@ -1,7 +1,7 @@
 """Tests for cli_manager module"""
 
 import pytest
-from ai_cli_mcp.cli_manager import (
+from other_agents_mcp.cli_manager import (
     CLIInfo,
     list_available_clis,
     get_cli_version,
@@ -57,7 +57,7 @@ class TestGetCliVersion:
     def test_get_version_success(self, mocker):
         """버전 정보 조회 성공"""
         # 'is_cli_installed'가 True를 반환하도록 모킹하여 함수가 조기 종료되는 것을 방지
-        mocker.patch("ai_cli_mcp.cli_manager.is_cli_installed", return_value=True)
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=True)
 
         mock_process = mocker.Mock()
         mock_process.stdout = "some-cli version 1.2.3"
@@ -90,8 +90,8 @@ class TestListAvailableClis:
 
     def test_returns_list_of_cli_info_objects(self, mocker):
         """반환값이 CLIInfo 객체들의 리스트인지 확인"""
-        mocker.patch("ai_cli_mcp.cli_manager.is_cli_installed", return_value=True)
-        mocker.patch("ai_cli_mcp.cli_manager.get_cli_version", return_value="1.0.0")
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=True)
+        mocker.patch("other_agents_mcp.cli_manager.get_cli_version", return_value="1.0.0")
         clis = list_available_clis()
         assert isinstance(clis, list)
         assert len(clis) == 4  # claude, gemini, codex, qwen
@@ -100,7 +100,7 @@ class TestListAvailableClis:
 
     def test_includes_all_configured_clis(self, mocker):
         """config에 정의된 모든 CLI 포함"""
-        mocker.patch("ai_cli_mcp.cli_manager.is_cli_installed", return_value=False)
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=False)
         clis = list_available_clis()
         cli_names = {cli.name for cli in clis}
         expected_names = {"claude", "gemini", "codex", "qwen"}
@@ -120,8 +120,8 @@ class TestListAvailableClis:
                 return "v2.0-gemini"
             return None
 
-        mocker.patch("ai_cli_mcp.cli_manager.is_cli_installed", side_effect=mock_is_installed)
-        mocker.patch("ai_cli_mcp.cli_manager.get_cli_version", side_effect=mock_get_version)
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", side_effect=mock_is_installed)
+        mocker.patch("other_agents_mcp.cli_manager.get_cli_version", side_effect=mock_get_version)
 
         clis = list_available_clis()
         cli_map = {cli.name: cli for cli in clis}

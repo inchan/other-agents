@@ -4,7 +4,7 @@ import pytest
 import os
 import subprocess
 from unittest.mock import patch, MagicMock, mock_open
-from ai_cli_mcp.file_handler import (
+from other_agents_mcp.file_handler import (
     execute_cli_file_based,
     execute_with_session,
     _execute_cli,
@@ -19,11 +19,11 @@ from ai_cli_mcp.file_handler import (
 class TestFileHandlerCoverage:
     """file_handler.py 커버리지 향상을 위한 추가 테스트"""
 
-    @patch('ai_cli_mcp.file_handler.get_session_manager')
-    @patch('ai_cli_mcp.file_handler.get_cli_registry')
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
-    @patch('ai_cli_mcp.file_handler._execute_cli')
-    @patch('ai_cli_mcp.file_handler._cleanup_temp_files')
+    @patch('other_agents_mcp.file_handler.get_session_manager')
+    @patch('other_agents_mcp.file_handler.get_cli_registry')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler._execute_cli')
+    @patch('other_agents_mcp.file_handler._cleanup_temp_files')
     @patch('tempfile.mkstemp')
     @patch('os.fdopen')
     @patch('os.close')
@@ -71,8 +71,8 @@ class TestFileHandlerCoverage:
         assert "--session-id" in additional_args
         assert "session-123" in additional_args
 
-    @patch('ai_cli_mcp.file_handler.get_session_manager')
-    @patch('ai_cli_mcp.file_handler.get_cli_registry')
+    @patch('other_agents_mcp.file_handler.get_session_manager')
+    @patch('other_agents_mcp.file_handler.get_cli_registry')
     def test_execute_with_session_cli_not_found(self, mock_registry, mock_session_manager):
         """세션 모드: 알 수 없는 CLI"""
         mock_registry.return_value.get_all_clis.return_value = {}
@@ -84,9 +84,9 @@ class TestFileHandlerCoverage:
                 session_id="sid"
             )
 
-    @patch('ai_cli_mcp.file_handler.get_session_manager')
-    @patch('ai_cli_mcp.file_handler.get_cli_registry')
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler.get_session_manager')
+    @patch('other_agents_mcp.file_handler.get_cli_registry')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
     def test_execute_with_session_cli_not_installed(self, mock_is_installed, mock_registry, mock_session_manager):
         """세션 모드: CLI 미설치"""
         mock_registry.return_value.get_all_clis.return_value = {
@@ -101,11 +101,11 @@ class TestFileHandlerCoverage:
                 session_id="sid"
             )
 
-    @patch('ai_cli_mcp.file_handler.get_session_manager')
-    @patch('ai_cli_mcp.file_handler.get_cli_registry')
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
-    @patch('ai_cli_mcp.file_handler._execute_cli')
-    @patch('ai_cli_mcp.file_handler._cleanup_temp_files')
+    @patch('other_agents_mcp.file_handler.get_session_manager')
+    @patch('other_agents_mcp.file_handler.get_cli_registry')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler._execute_cli')
+    @patch('other_agents_mcp.file_handler._cleanup_temp_files')
     @patch('tempfile.mkstemp')
     @patch('os.fdopen')
     @patch('os.close')
@@ -151,10 +151,10 @@ class TestFileHandlerCoverage:
         assert "--resume" in additional_args
         assert "latest" in additional_args
 
-    @patch('ai_cli_mcp.file_handler.get_cli_registry')
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
-    @patch('ai_cli_mcp.file_handler._execute_cli')
-    @patch('ai_cli_mcp.file_handler._cleanup_temp_files')
+    @patch('other_agents_mcp.file_handler.get_cli_registry')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler._execute_cli')
+    @patch('other_agents_mcp.file_handler._cleanup_temp_files')
     @patch('tempfile.mkstemp')
     @patch('os.fdopen')
     @patch('os.close')
@@ -189,10 +189,10 @@ class TestFileHandlerCoverage:
         args = mock_execute_cli.call_args[1]
         assert args["system_prompt"] == "System prompt"
 
-    @patch('ai_cli_mcp.file_handler.get_cli_registry')
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
-    @patch('ai_cli_mcp.file_handler._execute_cli')
-    @patch('ai_cli_mcp.file_handler._cleanup_temp_files')
+    @patch('other_agents_mcp.file_handler.get_cli_registry')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler._execute_cli')
+    @patch('other_agents_mcp.file_handler._cleanup_temp_files')
     @patch('tempfile.mkstemp')
     @patch('os.fdopen')
     @patch('os.close')

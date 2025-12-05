@@ -39,7 +39,7 @@ $ /opt/homebrew/bin/python3.12 -m venv venv
 ```
 
 **결과**: ✅ 성공
-**가상 환경 경로**: `/Users/chans/workspace/pilot/ai-cli-ping-pong/venv`
+**가상 환경 경로**: `/Users/chans/workspace/pilot/other-agents/venv`
 **Python 버전**: 3.12.12
 
 **이유**:
@@ -299,7 +299,7 @@ pyproject.toml의 `requires-python = ">=3.9"`가 실제 MCP SDK 요구사항과 
 
 #### 1.1 server.py 주석 해제
 
-**작업 파일**: `src/ai_cli_mcp/server.py`
+**작업 파일**: `src/other_agents_mcp/server.py`
 
 **해제할 코드**:
 ```python
@@ -308,7 +308,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
 # 서버 인스턴스 생성 (주석 해제)
-app = Server("ai-cli-mcp")
+app = Server("other-agents-mcp")
 
 # 데코레이터 및 핸들러 (주석 해제)
 @app.list_tools()
@@ -329,7 +329,7 @@ def main():
 **가상 환경에서 실행**:
 ```bash
 source venv/bin/activate
-python -m ai_cli_mcp.server
+python -m other_agents_mcp.server
 ```
 
 **예상 동작**:
@@ -339,7 +339,7 @@ python -m ai_cli_mcp.server
 #### 1.3 MCP Inspector 연결
 
 ```bash
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 ```
 
 **확인 사항**:
@@ -401,7 +401,7 @@ deactivate
 
 1. **항상 가상 환경 활성화**
    ```bash
-   cd /Users/chans/workspace/pilot/ai-cli-ping-pong
+   cd /Users/chans/workspace/pilot/other-agents
    source venv/bin/activate
    ```
 
@@ -412,7 +412,7 @@ deactivate
 
 3. **코드 실행**
    ```bash
-   python -m ai_cli_mcp.server
+   python -m other_agents_mcp.server
    ```
 
 4. **테스트 실행**

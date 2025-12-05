@@ -188,7 +188,7 @@ brew install pyenv
 pyenv install 3.12
 
 # 프로젝트 디렉토리에서 Python 버전 설정
-cd /Users/chans/workspace/pilot/ai-cli-ping-pong
+cd /Users/chans/workspace/pilot/other-agents
 pyenv local 3.12
 
 # 가상 환경 생성
@@ -294,7 +294,7 @@ brew install python@3.12
 ln -s /opt/homebrew/bin/python3.12 /usr/local/bin/python3
 
 # 프로젝트에서 테스트
-cd /Users/chans/workspace/pilot/ai-cli-ping-pong
+cd /Users/chans/workspace/pilot/other-agents
 python3 -m pip install mcp>=0.9.0
 ```
 
@@ -303,7 +303,7 @@ python3 -m pip install mcp>=0.9.0
 # pyenv + venv 조합
 brew install pyenv
 pyenv install 3.12
-cd /Users/chans/workspace/pilot/ai-cli-ping-pong
+cd /Users/chans/workspace/pilot/other-agents
 pyenv local 3.12
 python3 -m venv venv
 source venv/bin/activate

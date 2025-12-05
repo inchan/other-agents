@@ -4,7 +4,7 @@ import subprocess
 from unittest.mock import Mock, patch, MagicMock
 import pytest
 
-from ai_cli_mcp.file_handler import (
+from other_agents_mcp.file_handler import (
     execute_cli_file_based,
     CLINotFoundError,
     CLITimeoutError,
@@ -15,14 +15,14 @@ from ai_cli_mcp.file_handler import (
 class TestFileHandlerMocked:
     """Mock 기반 file_handler 테스트"""
 
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
-    @patch('ai_cli_mcp.file_handler.subprocess.run')
-    @patch('ai_cli_mcp.file_handler.tempfile.mkstemp')
-    @patch('ai_cli_mcp.file_handler.os.fdopen')
-    @patch('ai_cli_mcp.file_handler.os.close')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler.subprocess.run')
+    @patch('other_agents_mcp.file_handler.tempfile.mkstemp')
+    @patch('other_agents_mcp.file_handler.os.fdopen')
+    @patch('other_agents_mcp.file_handler.os.close')
     @patch('builtins.open', create=True)
-    @patch('ai_cli_mcp.file_handler.os.remove')
-    @patch('ai_cli_mcp.file_handler.os.path.exists')
+    @patch('other_agents_mcp.file_handler.os.remove')
+    @patch('other_agents_mcp.file_handler.os.path.exists')
     def test_execute_cli_success(
         self, mock_exists, mock_remove, mock_open_builtin,
         mock_close, mock_fdopen, mock_mkstemp, mock_run, mock_installed
@@ -47,7 +47,7 @@ class TestFileHandlerMocked:
         assert mock_run.called
         assert mock_remove.call_count == 2  # input, output 파일 삭제
 
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
     def test_cli_not_installed(self, mock_installed):
         """미설치 CLI 에러"""
         mock_installed.return_value = False
@@ -55,14 +55,14 @@ class TestFileHandlerMocked:
         with pytest.raises(CLINotFoundError):
             execute_cli_file_based("nonexistent", "test")
 
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
-    @patch('ai_cli_mcp.file_handler.subprocess.run')
-    @patch('ai_cli_mcp.file_handler.tempfile.mkstemp')
-    @patch('ai_cli_mcp.file_handler.os.fdopen')
-    @patch('ai_cli_mcp.file_handler.os.close')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler.subprocess.run')
+    @patch('other_agents_mcp.file_handler.tempfile.mkstemp')
+    @patch('other_agents_mcp.file_handler.os.fdopen')
+    @patch('other_agents_mcp.file_handler.os.close')
     @patch('builtins.open', create=True)
-    @patch('ai_cli_mcp.file_handler.os.remove')
-    @patch('ai_cli_mcp.file_handler.os.path.exists')
+    @patch('other_agents_mcp.file_handler.os.remove')
+    @patch('other_agents_mcp.file_handler.os.path.exists')
     def test_timeout_exception(
         self, mock_exists, mock_remove, mock_open_builtin, mock_close,
         mock_fdopen, mock_mkstemp, mock_run, mock_installed
@@ -85,14 +85,14 @@ class TestFileHandlerMocked:
         # 파일 정리 확인
         assert mock_remove.call_count == 2
 
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
-    @patch('ai_cli_mcp.file_handler.subprocess.run')
-    @patch('ai_cli_mcp.file_handler.tempfile.mkstemp')
-    @patch('ai_cli_mcp.file_handler.os.fdopen')
-    @patch('ai_cli_mcp.file_handler.os.close')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler.subprocess.run')
+    @patch('other_agents_mcp.file_handler.tempfile.mkstemp')
+    @patch('other_agents_mcp.file_handler.os.fdopen')
+    @patch('other_agents_mcp.file_handler.os.close')
     @patch('builtins.open', create=True)
-    @patch('ai_cli_mcp.file_handler.os.remove')
-    @patch('ai_cli_mcp.file_handler.os.path.exists')
+    @patch('other_agents_mcp.file_handler.os.remove')
+    @patch('other_agents_mcp.file_handler.os.path.exists')
     def test_cli_execution_error(
         self, mock_exists, mock_remove, mock_open_builtin, mock_close,
         mock_fdopen, mock_mkstemp, mock_run, mock_installed
@@ -113,14 +113,14 @@ class TestFileHandlerMocked:
         assert "Error occurred" in str(exc_info.value)
         assert mock_remove.call_count == 2
 
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
-    @patch('ai_cli_mcp.file_handler.subprocess.run')
-    @patch('ai_cli_mcp.file_handler.tempfile.mkstemp')
-    @patch('ai_cli_mcp.file_handler.os.fdopen')
-    @patch('ai_cli_mcp.file_handler.os.close')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler.subprocess.run')
+    @patch('other_agents_mcp.file_handler.tempfile.mkstemp')
+    @patch('other_agents_mcp.file_handler.os.fdopen')
+    @patch('other_agents_mcp.file_handler.os.close')
     @patch('builtins.open', create=True)
-    @patch('ai_cli_mcp.file_handler.os.remove')
-    @patch('ai_cli_mcp.file_handler.os.path.exists')
+    @patch('other_agents_mcp.file_handler.os.remove')
+    @patch('other_agents_mcp.file_handler.os.path.exists')
     def test_env_vars_passed(
         self, mock_exists, mock_remove, mock_open_builtin, mock_close,
         mock_fdopen, mock_mkstemp, mock_run, mock_installed
@@ -152,14 +152,14 @@ class TestFileHandlerMocked:
 class TestExceptionCoverage:
     """예외 경로 커버리지 향상"""
 
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
-    @patch('ai_cli_mcp.file_handler.subprocess.run')
-    @patch('ai_cli_mcp.file_handler.tempfile.mkstemp')
-    @patch('ai_cli_mcp.file_handler.os.fdopen')
-    @patch('ai_cli_mcp.file_handler.os.close')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler.subprocess.run')
+    @patch('other_agents_mcp.file_handler.tempfile.mkstemp')
+    @patch('other_agents_mcp.file_handler.os.fdopen')
+    @patch('other_agents_mcp.file_handler.os.close')
     @patch('builtins.open', create=True)
-    @patch('ai_cli_mcp.file_handler.os.remove')
-    @patch('ai_cli_mcp.file_handler.os.path.exists')
+    @patch('other_agents_mcp.file_handler.os.remove')
+    @patch('other_agents_mcp.file_handler.os.path.exists')
     def test_file_not_found_exception(
         self, mock_exists, mock_remove, mock_open_builtin, mock_close,
         mock_fdopen, mock_mkstemp, mock_run, mock_installed

@@ -4,7 +4,7 @@
 """
 
 import pytest
-from ai_cli_mcp.session_manager import SessionManager, get_session_manager
+from other_agents_mcp.session_manager import SessionManager, get_session_manager
 
 
 class TestSessionManager:
@@ -134,7 +134,7 @@ class TestSessionManager:
         manager = SessionManager()
 
         # MAX_SESSIONS는 1000이지만 테스트는 작은 수로
-        from ai_cli_mcp.session_manager import MAX_SESSIONS
+        from other_agents_mcp.session_manager import MAX_SESSIONS
 
         # 실제로 1000개를 만들 수는 없으니 로직만 확인
         # (이 테스트는 실제 환경에서 시간이 오래 걸림)
@@ -146,7 +146,7 @@ class TestSessionArgs:
 
     def test_claude_first_request(self):
         """Claude 첫 요청 (--session-id)"""
-        from ai_cli_mcp.file_handler import _build_session_args
+        from other_agents_mcp.file_handler import _build_session_args
 
         args = _build_session_args(
             cli_name="claude",
@@ -160,7 +160,7 @@ class TestSessionArgs:
 
     def test_claude_resume_request(self):
         """Claude 세션 재개 (--resume)"""
-        from ai_cli_mcp.file_handler import _build_session_args
+        from other_agents_mcp.file_handler import _build_session_args
 
         args = _build_session_args(
             cli_name="claude",
@@ -174,7 +174,7 @@ class TestSessionArgs:
 
     def test_gemini_first_request(self):
         """Gemini 첫 요청 (플래그 없음)"""
-        from ai_cli_mcp.file_handler import _build_session_args
+        from other_agents_mcp.file_handler import _build_session_args
 
         args = _build_session_args(
             cli_name="gemini",
@@ -187,7 +187,7 @@ class TestSessionArgs:
 
     def test_gemini_resume_request(self):
         """Gemini 세션 재개 (--resume latest)"""
-        from ai_cli_mcp.file_handler import _build_session_args
+        from other_agents_mcp.file_handler import _build_session_args
 
         args = _build_session_args(
             cli_name="gemini",
@@ -206,7 +206,7 @@ class TestSessionModeIntegration:
     @pytest.mark.asyncio
     async def test_session_mode_detection(self):
         """세션 모드 자동 감지 테스트"""
-        from ai_cli_mcp.server import call_tool
+        from other_agents_mcp.server import call_tool
 
         # session_id 없음 → Stateless 모드
         # (실제 CLI 호출은 안 하고 에러 확인만)
@@ -229,7 +229,7 @@ class TestSessionModeIntegration:
     @pytest.mark.asyncio
     async def test_resume_without_session_id(self):
         """resume=True인데 session_id 없으면 무시"""
-        from ai_cli_mcp.server import call_tool
+        from other_agents_mcp.server import call_tool
 
         result = await call_tool("send_message", {
             "cli_name": "nonexistent",

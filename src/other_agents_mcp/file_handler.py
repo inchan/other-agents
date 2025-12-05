@@ -96,12 +96,12 @@ def execute_cli_file_based(
     session_id = str(uuid.uuid4())
     input_fd, input_path = tempfile.mkstemp(
         suffix=".txt",
-        prefix=f"ai_cli_mcp_input_{session_id}_",
+        prefix=f"other_agents_mcp_input_{session_id}_",
         text=True
     )
     output_fd, output_path = tempfile.mkstemp(
         suffix=".txt",
-        prefix=f"ai_cli_mcp_output_{session_id}_",
+        prefix=f"other_agents_mcp_output_{session_id}_",
         text=True
     )
 
@@ -409,12 +409,12 @@ def execute_with_session(
     file_session_id = str(uuid.uuid4())
     input_fd, input_path = tempfile.mkstemp(
         suffix=".txt",
-        prefix=f"ai_cli_mcp_input_{file_session_id}_",
+        prefix=f"other_agents_mcp_input_{file_session_id}_",
         text=True
     )
     output_fd, output_path = tempfile.mkstemp(
         suffix=".txt",
-        prefix=f"ai_cli_mcp_output_{file_session_id}_",
+        prefix=f"other_agents_mcp_output_{file_session_id}_",
         text=True
     )
 

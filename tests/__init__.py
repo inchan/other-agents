@@ -1,1 +1,1 @@
-"""Test suite for ai_cli_mcp"""
+"""Test suite for other_agents_mcp"""

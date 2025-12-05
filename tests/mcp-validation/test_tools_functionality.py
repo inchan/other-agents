@@ -10,14 +10,14 @@ import tempfile
 import os
 from dataclasses import asdict
 
-from ai_cli_mcp.server import call_tool
-from ai_cli_mcp.cli_manager import (
+from other_agents_mcp.server import call_tool
+from other_agents_mcp.cli_manager import (
     list_available_clis,
     is_cli_installed,
     get_cli_version,
     CLIInfo
 )
-from ai_cli_mcp.file_handler import (
+from other_agents_mcp.file_handler import (
     execute_cli_file_based,
     CLINotFoundError,
     CLIExecutionError,
@@ -40,7 +40,7 @@ class TestListAvailableCLIs:
 
     def test_contains_all_configured_clis(self):
         """설정된 모든 CLI를 포함하는지 확인"""
-        from ai_cli_mcp.config import CLI_CONFIGS
+        from other_agents_mcp.config import CLI_CONFIGS
 
         result = list_available_clis()
         cli_names = {cli.name for cli in result}
@@ -62,7 +62,7 @@ class TestListAvailableCLIs:
             assert isinstance(cli_info.command, str)
             assert isinstance(cli_info.installed, bool)
 
-    @patch('ai_cli_mcp.cli_manager.is_cli_installed')
+    @patch('other_agents_mcp.cli_manager.is_cli_installed')
     def test_installed_flag_reflects_availability(self, mock_is_installed):
         """installed 플래그가 실제 설치 여부를 반영하는지 확인"""
         # 특정 CLI만 설치된 것으로 가정
@@ -76,8 +76,8 @@ class TestListAvailableCLIs:
             else:
                 assert cli_info.installed is False
 
-    @patch('ai_cli_mcp.cli_manager.get_cli_version')
-    @patch('ai_cli_mcp.cli_manager.is_cli_installed')
+    @patch('other_agents_mcp.cli_manager.get_cli_version')
+    @patch('other_agents_mcp.cli_manager.is_cli_installed')
     def test_version_populated_when_installed(self, mock_is_installed, mock_get_version):
         """설치된 CLI의 버전 정보가 조회되는지 확인"""
         mock_is_installed.return_value = True
@@ -88,7 +88,7 @@ class TestListAvailableCLIs:
         for cli_info in result:
             assert cli_info.version == "1.0.0"
 
-    @patch('ai_cli_mcp.cli_manager.is_cli_installed')
+    @patch('other_agents_mcp.cli_manager.is_cli_installed')
     def test_version_none_when_not_installed(self, mock_is_installed):
         """설치되지 않은 CLI의 버전이 None인지 확인"""
         mock_is_installed.return_value = False
@@ -125,7 +125,7 @@ class TestListToolsMCPTool:
             assert "installed" in cli_dict
 
     @pytest.mark.asyncio
-    @patch('ai_cli_mcp.server.list_available_clis')  # server.py에서 import한 것을 패치
+    @patch('other_agents_mcp.server.list_available_clis')  # server.py에서 import한 것을 패치
     async def test_uses_asyncio_to_thread(self, mock_list_clis):
         """비동기 처리를 위해 asyncio.to_thread를 사용하는지 확인"""
         mock_cli = CLIInfo(
@@ -156,7 +156,7 @@ class TestRunTool:
             await call_tool("run_tool", {})
 
     @pytest.mark.asyncio
-    @patch('ai_cli_mcp.server.execute_cli_file_based')  # server.py에서 import한 것을 패치
+    @patch('other_agents_mcp.server.execute_cli_file_based')  # server.py에서 import한 것을 패치
     async def test_successful_message_send(self, mock_execute):
         """정상적인 메시지 전송 테스트"""
         mock_execute.return_value = "CLI response"
@@ -171,7 +171,7 @@ class TestRunTool:
         mock_execute.assert_called_once_with("claude", "Hello", True, None, [], None)
 
     @pytest.mark.asyncio
-    @patch('ai_cli_mcp.server.execute_cli_file_based')  # server.py에서 import한 것을 패치
+    @patch('other_agents_mcp.server.execute_cli_file_based')  # server.py에서 import한 것을 패치
     async def test_cli_not_found_error(self, mock_execute):
         """CLI가 없을 때 에러 처리 확인"""
         mock_execute.side_effect = CLINotFoundError("CLI not found")
@@ -186,7 +186,7 @@ class TestRunTool:
         assert result["type"] == "CLINotFoundError"
 
     @pytest.mark.asyncio
-    @patch('ai_cli_mcp.server.execute_cli_file_based')  # server.py에서 import한 것을 패치
+    @patch('other_agents_mcp.server.execute_cli_file_based')  # server.py에서 import한 것을 패치
     async def test_cli_timeout_error(self, mock_execute):
         """CLI 타임아웃 에러 처리 확인"""
         mock_execute.side_effect = CLITimeoutError("Timeout")
@@ -200,7 +200,7 @@ class TestRunTool:
         assert result["type"] == "CLITimeoutError"
 
     @pytest.mark.asyncio
-    @patch('ai_cli_mcp.server.execute_cli_file_based')  # server.py에서 import한 것을 패치
+    @patch('other_agents_mcp.server.execute_cli_file_based')  # server.py에서 import한 것을 패치
     async def test_cli_execution_error(self, mock_execute):
         """CLI 실행 에러 처리 확인"""
         mock_execute.side_effect = CLIExecutionError("Execution failed")
@@ -236,7 +236,7 @@ class TestCLIManager:
 
         assert result is False
 
-    @patch('ai_cli_mcp.cli_manager.is_cli_installed')
+    @patch('other_agents_mcp.cli_manager.is_cli_installed')
     def test_get_cli_version_not_installed(self, mock_is_installed):
         """미설치 CLI의 버전 조회 시 None 반환"""
         mock_is_installed.return_value = False
@@ -246,7 +246,7 @@ class TestCLIManager:
         assert result is None
 
     @patch('subprocess.run')
-    @patch('ai_cli_mcp.cli_manager.is_cli_installed')
+    @patch('other_agents_mcp.cli_manager.is_cli_installed')
     def test_get_cli_version_success(self, mock_is_installed, mock_run):
         """CLI 버전 조회 성공"""
         mock_is_installed.return_value = True
@@ -261,7 +261,7 @@ class TestCLIManager:
         assert result == "claude 1.0.0"
 
     @patch('subprocess.run')
-    @patch('ai_cli_mcp.cli_manager.is_cli_installed')
+    @patch('other_agents_mcp.cli_manager.is_cli_installed')
     def test_get_cli_version_timeout(self, mock_is_installed, mock_run):
         """버전 조회 타임아웃 시 None 반환"""
         import subprocess
@@ -277,7 +277,7 @@ class TestCLIManager:
 class TestFileBasedCLIExecution:
     """파일 기반 CLI 실행 테스트"""
 
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
     def test_unknown_cli_raises_error(self, mock_is_installed):
         """알 수 없는 CLI 실행 시 CLINotFoundError 발생"""
         with pytest.raises(CLINotFoundError) as exc_info:
@@ -285,7 +285,7 @@ class TestFileBasedCLIExecution:
 
         assert "알 수 없는 CLI" in str(exc_info.value)
 
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
     def test_not_installed_cli_raises_error(self, mock_is_installed):
         """미설치 CLI 실행 시 CLINotFoundError 발생"""
         mock_is_installed.return_value = False
@@ -295,8 +295,8 @@ class TestFileBasedCLIExecution:
 
         assert "설치되지 않았습니다" in str(exc_info.value)
 
-    @patch('ai_cli_mcp.file_handler._execute_cli')
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler._execute_cli')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
     @patch('tempfile.mkstemp')
     def test_creates_temp_files(self, mock_mkstemp, mock_is_installed, mock_execute):
         """임시 파일이 생성되는지 확인"""
@@ -323,7 +323,7 @@ class TestFileBasedCLIExecution:
         assert result == "response"
 
     @patch('subprocess.run')
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
     @patch('builtins.open', new_callable=mock_open, read_data="CLI output")
     @patch('tempfile.mkstemp')
     def test_successful_execution(self, mock_mkstemp, mock_file, mock_is_installed, mock_run):
@@ -362,7 +362,7 @@ class TestFileBasedCLIExecution:
                 os.remove(output_path)
 
     @patch('subprocess.run')
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
     def test_execution_timeout_raises_error(self, mock_is_installed, mock_run):
         """실행 타임아웃 시 CLITimeoutError 발생"""
         import subprocess
@@ -373,9 +373,9 @@ class TestFileBasedCLIExecution:
         with pytest.raises(CLITimeoutError):
             execute_cli_file_based("claude", "test")
 
-    @patch('ai_cli_mcp.file_handler._cleanup_temp_files')
-    @patch('ai_cli_mcp.file_handler._execute_cli')
-    @patch('ai_cli_mcp.file_handler.is_cli_installed')
+    @patch('other_agents_mcp.file_handler._cleanup_temp_files')
+    @patch('other_agents_mcp.file_handler._execute_cli')
+    @patch('other_agents_mcp.file_handler.is_cli_installed')
     @patch('tempfile.mkstemp')
     def test_temp_files_cleaned_up(self, mock_mkstemp, mock_is_installed,
                                    mock_execute, mock_cleanup):
@@ -404,7 +404,7 @@ class TestCLIConfiguration:
 
     def test_all_clis_have_required_config(self):
         """모든 CLI가 필수 설정을 가지는지 확인"""
-        from ai_cli_mcp.config import CLI_CONFIGS
+        from other_agents_mcp.config import CLI_CONFIGS
 
         for cli_name, config in CLI_CONFIGS.items():
             assert "command" in config
@@ -419,14 +419,14 @@ class TestCLIConfiguration:
 
     def test_timeout_values_are_positive(self):
         """타임아웃 값이 양수인지 확인"""
-        from ai_cli_mcp.config import CLI_CONFIGS
+        from other_agents_mcp.config import CLI_CONFIGS
 
         for cli_name, config in CLI_CONFIGS.items():
             assert config["timeout"] > 0
 
     def test_qwen_has_custom_env_vars(self):
         """qwen CLI가 커스텀 환경 변수를 가지는지 확인"""
-        from ai_cli_mcp.config import CLI_CONFIGS
+        from other_agents_mcp.config import CLI_CONFIGS
 
         qwen_config = CLI_CONFIGS["qwen"]
 
@@ -435,4 +435,4 @@ class TestCLIConfiguration:
 
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--cov=src/ai_cli_mcp"])
+    pytest.main([__file__, "-v", "--cov=src/other_agents_mcp"])

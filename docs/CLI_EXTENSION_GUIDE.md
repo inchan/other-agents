@@ -65,7 +65,7 @@ MCP 도구 `add_tool`를 사용하여 런타임에 CLI를 추가합니다.
 ### 파일 위치
 
 ```
-ai-cli-ping-pong/
+other-agents/
 ├── custom_clis.json  ← 이 파일 수정
 ├── src/
 └── docs/
@@ -112,12 +112,12 @@ ai-cli-ping-pong/
 
 ## 방법 3: 기본 CLI 추가 (config.py)
 
-공식 지원 CLI로 추가하려면 `src/ai_cli_mcp/config.py`를 수정합니다.
+공식 지원 CLI로 추가하려면 `src/other_agents_mcp/config.py`를 수정합니다.
 
 ### 파일 위치
 
 ```
-src/ai_cli_mcp/config.py
+src/other_agents_mcp/config.py
 ```
 
 ### 예시

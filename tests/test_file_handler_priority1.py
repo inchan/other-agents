@@ -9,7 +9,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 import yaml
 
-from ai_cli_mcp.file_handler import (
+from other_agents_mcp.file_handler import (
     execute_cli_file_based,
     CLINotFoundError,
     CLITimeoutError,
@@ -22,8 +22,8 @@ class TestExecuteCliFileBasedIntegration:
 
     def test_execute_cli_with_real_file_io(self):
         """실제 파일 I/O로 동작 검증"""
-        with patch("ai_cli_mcp.file_handler.is_cli_installed", return_value=True):
-            with patch("ai_cli_mcp.file_handler.subprocess.run") as mock_run:
+        with patch("other_agents_mcp.file_handler.is_cli_installed", return_value=True):
+            with patch("other_agents_mcp.file_handler.subprocess.run") as mock_run:
                 # subprocess.run 모킹
                 mock_run.return_value = MagicMock(
                     returncode=0,
@@ -35,7 +35,7 @@ class TestExecuteCliFileBasedIntegration:
                 with tempfile.TemporaryDirectory() as tmpdir:
                     output_path = os.path.join(tmpdir, "output.txt")
 
-                    with patch("ai_cli_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
+                    with patch("other_agents_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
                         # input 파일 생성
                         input_fd = 10
                         input_path = os.path.join(tmpdir, "input.txt")
@@ -54,7 +54,7 @@ class TestExecuteCliFileBasedIntegration:
                         ]
 
                         try:
-                            with patch("ai_cli_mcp.file_handler.os.fdopen"):
+                            with patch("other_agents_mcp.file_handler.os.fdopen"):
                                 with patch("builtins.open", create=True):
                                     # execute_cli_file_based 호출
                                     result = execute_cli_file_based(
@@ -70,12 +70,12 @@ class TestExecuteCliFileBasedIntegration:
 
     def test_execute_cli_file_written_correctly(self):
         """메시지가 파일에 올바르게 기록됨"""
-        with patch("ai_cli_mcp.file_handler.is_cli_installed", return_value=True):
-            with patch("ai_cli_mcp.file_handler._execute_cli") as mock_execute:
+        with patch("other_agents_mcp.file_handler.is_cli_installed", return_value=True):
+            with patch("other_agents_mcp.file_handler._execute_cli") as mock_execute:
                 mock_execute.return_value = 0
 
                 with tempfile.TemporaryDirectory() as tmpdir:
-                    with patch("ai_cli_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
+                    with patch("other_agents_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
                         input_path = os.path.join(tmpdir, "input.txt")
                         output_path = os.path.join(tmpdir, "output.txt")
 
@@ -109,8 +109,8 @@ class TestExecuteCliFileBasedIntegration:
 
                             return MockFile()
 
-                        with patch("ai_cli_mcp.file_handler.os.fdopen", side_effect=mock_fdopen):
-                            with patch("ai_cli_mcp.file_handler.os.close"):
+                        with patch("other_agents_mcp.file_handler.os.fdopen", side_effect=mock_fdopen):
+                            with patch("other_agents_mcp.file_handler.os.close"):
                                 with patch("builtins.open", create=True) as mock_open:
                                     mock_open.return_value.__enter__.return_value.read.return_value = "output"
 
@@ -129,18 +129,18 @@ class TestSystemPromptHandling:
 
     def test_system_prompt_parameters_passed(self):
         """시스템 프롬프트가 파라미터로 전달됨"""
-        with patch("ai_cli_mcp.file_handler.is_cli_installed", return_value=True):
-            with patch("ai_cli_mcp.file_handler._execute_cli") as mock_execute:
+        with patch("other_agents_mcp.file_handler.is_cli_installed", return_value=True):
+            with patch("other_agents_mcp.file_handler._execute_cli") as mock_execute:
                 mock_execute.return_value = 0
 
-                with patch("ai_cli_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
+                with patch("other_agents_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
                     mock_mkstemp.side_effect = [
                         (10, "/tmp/input.txt"),
                         (11, "/tmp/output.txt"),
                     ]
 
-                    with patch("ai_cli_mcp.file_handler.os.fdopen"):
-                        with patch("ai_cli_mcp.file_handler.os.close"):
+                    with patch("other_agents_mcp.file_handler.os.fdopen"):
+                        with patch("other_agents_mcp.file_handler.os.close"):
                             with patch("builtins.open", create=True) as mock_open:
                                 mock_open.return_value.__enter__.return_value.read.return_value = "output"
 
@@ -169,7 +169,7 @@ class TestErrorHandling:
 
     def test_cli_not_installed(self):
         """CLI가 설치되지 않음"""
-        with patch("ai_cli_mcp.file_handler.get_cli_registry") as mock_registry:
+        with patch("other_agents_mcp.file_handler.get_cli_registry") as mock_registry:
             mock_registry.return_value.get_all_clis.return_value = {
                 "claude": {
                     "command": "claude",
@@ -181,7 +181,7 @@ class TestErrorHandling:
                 }
             }
 
-            with patch("ai_cli_mcp.file_handler.is_cli_installed", return_value=False):
+            with patch("other_agents_mcp.file_handler.is_cli_installed", return_value=False):
                 with pytest.raises(CLINotFoundError, match="설치되지 않았습니다"):
                     execute_cli_file_based(
                         cli_name="claude",
@@ -191,8 +191,8 @@ class TestErrorHandling:
 
     def test_execution_error_with_returncode(self):
         """실행 에러 (returncode != 0)"""
-        with patch("ai_cli_mcp.file_handler.is_cli_installed", return_value=True):
-            with patch("ai_cli_mcp.file_handler._execute_cli") as mock_execute:
+        with patch("other_agents_mcp.file_handler.is_cli_installed", return_value=True):
+            with patch("other_agents_mcp.file_handler._execute_cli") as mock_execute:
                 mock_execute.side_effect = CLIExecutionError("CLI 실행 실패 (코드 1): error message")
 
                 with pytest.raises(CLIExecutionError):
@@ -207,18 +207,18 @@ class TestSkipGitCheckFlag:
 
     def test_skip_git_check_parameter_passed(self):
         """skip_git_repo_check 파라미터 전달 검증"""
-        with patch("ai_cli_mcp.file_handler.is_cli_installed", return_value=True):
-            with patch("ai_cli_mcp.file_handler._execute_cli") as mock_execute:
+        with patch("other_agents_mcp.file_handler.is_cli_installed", return_value=True):
+            with patch("other_agents_mcp.file_handler._execute_cli") as mock_execute:
                 mock_execute.return_value = 0
 
-                with patch("ai_cli_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
+                with patch("other_agents_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
                     mock_mkstemp.side_effect = [
                         (10, "/tmp/input.txt"),
                         (11, "/tmp/output.txt"),
                     ]
 
-                    with patch("ai_cli_mcp.file_handler.os.fdopen"):
-                        with patch("ai_cli_mcp.file_handler.os.close"):
+                    with patch("other_agents_mcp.file_handler.os.fdopen"):
+                        with patch("other_agents_mcp.file_handler.os.close"):
                             with patch("builtins.open", create=True) as mock_open:
                                 mock_open.return_value.__enter__.return_value.read.return_value = "output"
 
@@ -238,18 +238,18 @@ class TestEnvironmentVariables:
 
     def test_env_vars_parameter_passed(self):
         """환경 변수가 _execute_cli에 전달됨"""
-        with patch("ai_cli_mcp.file_handler.is_cli_installed", return_value=True):
-            with patch("ai_cli_mcp.file_handler._execute_cli") as mock_execute:
+        with patch("other_agents_mcp.file_handler.is_cli_installed", return_value=True):
+            with patch("other_agents_mcp.file_handler._execute_cli") as mock_execute:
                 mock_execute.return_value = 0
 
-                with patch("ai_cli_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
+                with patch("other_agents_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
                     mock_mkstemp.side_effect = [
                         (10, "/tmp/input.txt"),
                         (11, "/tmp/output.txt"),
                     ]
 
-                    with patch("ai_cli_mcp.file_handler.os.fdopen"):
-                        with patch("ai_cli_mcp.file_handler.os.close"):
+                    with patch("other_agents_mcp.file_handler.os.fdopen"):
+                        with patch("other_agents_mcp.file_handler.os.close"):
                             with patch("builtins.open", create=True) as mock_open:
                                 mock_open.return_value.__enter__.return_value.read.return_value = "output"
 
@@ -270,18 +270,18 @@ class TestTempFileCleanup:
 
     def test_temp_files_created(self):
         """임시 파일이 생성됨"""
-        with patch("ai_cli_mcp.file_handler.is_cli_installed", return_value=True):
-            with patch("ai_cli_mcp.file_handler._execute_cli") as mock_execute:
+        with patch("other_agents_mcp.file_handler.is_cli_installed", return_value=True):
+            with patch("other_agents_mcp.file_handler._execute_cli") as mock_execute:
                 mock_execute.return_value = 0
 
-                with patch("ai_cli_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
+                with patch("other_agents_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
                     mock_mkstemp.side_effect = [
                         (10, "/tmp/input.txt"),
                         (11, "/tmp/output.txt"),
                     ]
 
-                    with patch("ai_cli_mcp.file_handler.os.fdopen"):
-                        with patch("ai_cli_mcp.file_handler.os.close"):
+                    with patch("other_agents_mcp.file_handler.os.fdopen"):
+                        with patch("other_agents_mcp.file_handler.os.close"):
                             with patch("builtins.open", create=True) as mock_open:
                                 mock_open.return_value.__enter__.return_value.read.return_value = "output"
 
@@ -295,19 +295,19 @@ class TestTempFileCleanup:
 
     def test_temp_files_cleaned_on_success(self):
         """성공 시 임시 파일 정리"""
-        with patch("ai_cli_mcp.file_handler.is_cli_installed", return_value=True):
-            with patch("ai_cli_mcp.file_handler._execute_cli") as mock_execute:
+        with patch("other_agents_mcp.file_handler.is_cli_installed", return_value=True):
+            with patch("other_agents_mcp.file_handler._execute_cli") as mock_execute:
                 mock_execute.return_value = 0
 
-                with patch("ai_cli_mcp.file_handler._cleanup_temp_files") as mock_cleanup:
-                    with patch("ai_cli_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
+                with patch("other_agents_mcp.file_handler._cleanup_temp_files") as mock_cleanup:
+                    with patch("other_agents_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
                         mock_mkstemp.side_effect = [
                             (10, "/tmp/input"),
                             (11, "/tmp/output"),
                         ]
 
-                        with patch("ai_cli_mcp.file_handler.os.fdopen"):
-                            with patch("ai_cli_mcp.file_handler.os.close"):
+                        with patch("other_agents_mcp.file_handler.os.fdopen"):
+                            with patch("other_agents_mcp.file_handler.os.close"):
                                 with patch("builtins.open", create=True) as mock_open:
                                     mock_open.return_value.__enter__.return_value.read.return_value = "output"
 
@@ -321,19 +321,19 @@ class TestTempFileCleanup:
 
     def test_temp_files_cleaned_on_error(self):
         """에러 발생 시에도 임시 파일 정리"""
-        with patch("ai_cli_mcp.file_handler.is_cli_installed", return_value=True):
-            with patch("ai_cli_mcp.file_handler._execute_cli") as mock_execute:
+        with patch("other_agents_mcp.file_handler.is_cli_installed", return_value=True):
+            with patch("other_agents_mcp.file_handler._execute_cli") as mock_execute:
                 mock_execute.side_effect = CLIExecutionError("Error")
 
-                with patch("ai_cli_mcp.file_handler._cleanup_temp_files") as mock_cleanup:
-                    with patch("ai_cli_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
+                with patch("other_agents_mcp.file_handler._cleanup_temp_files") as mock_cleanup:
+                    with patch("other_agents_mcp.file_handler.tempfile.mkstemp") as mock_mkstemp:
                         mock_mkstemp.side_effect = [
                             (10, "/tmp/input"),
                             (11, "/tmp/output"),
                         ]
 
-                        with patch("ai_cli_mcp.file_handler.os.fdopen"):
-                            with patch("ai_cli_mcp.file_handler.os.close"):
+                        with patch("other_agents_mcp.file_handler.os.fdopen"):
+                            with patch("other_agents_mcp.file_handler.os.close"):
                                 try:
                                     result = execute_cli_file_based(
                                         cli_name="claude",

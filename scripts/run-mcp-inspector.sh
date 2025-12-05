@@ -9,10 +9,10 @@ if [ ! -z "$PID" ]; then
   echo "⚠️  Port $PORT is already in use by process $PID."
   # Show process details
   lsof -i :$PORT
-  
+
   echo ""
   read -p "Do you want to kill this process to free up port $PORT? (y/N) " response
-  
+
   if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
     echo "Killing process $PID..."
     kill -9 $PID
@@ -24,10 +24,10 @@ if [ ! -z "$PID" ]; then
   fi
 fi
 
-echo "Starting MCP Inspector with AI CLI Ping-Pong server..."
+echo "Starting MCP Inspector with Other Agents MCP server..."
 echo "Access the inspector at: http://localhost:$PORT"
 echo "Press Ctrl+C to stop the server."
 
-npx @modelcontextprotocol/inspector ./.venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 
 echo "MCP Inspector stopped."

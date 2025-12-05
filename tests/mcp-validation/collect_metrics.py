@@ -36,7 +36,7 @@ class MCPMetricsCollector:
                 "./venv/bin/pytest",
                 "tests/mcp-validation/",
                 "-v",
-                "--cov=src/ai_cli_mcp",
+                "--cov=src/other_agents_mcp",
                 "--cov-report=json",
                 "--json-report",
                 "--json-report-file=tests/mcp-validation/test_report.json"
@@ -108,7 +108,7 @@ class MCPMetricsCollector:
         # 파일별 커버리지 추출
         files_coverage = {}
         for file_path, file_data in coverage_data.get("files", {}).items():
-            if "ai_cli_mcp" in file_path:
+            if "other_agents_mcp" in file_path:
                 file_name = Path(file_path).name
                 summary = file_data.get("summary", {})
                 files_coverage[file_name] = {
@@ -166,7 +166,7 @@ class MCPMetricsCollector:
         }
 
         # 코드 라인 수 계산
-        src_lines = self._count_lines("src/ai_cli_mcp/**/*.py")
+        src_lines = self._count_lines("src/other_agents_mcp/**/*.py")
         test_lines = quality["total_test_lines"]
 
         if src_lines > 0:

@@ -10,8 +10,8 @@ from pathlib import Path
 
 import pytest
 
-from ai_cli_mcp.cli_registry import CLIRegistry, get_cli_registry
-from ai_cli_mcp.config import CLI_CONFIGS
+from other_agents_mcp.cli_registry import CLIRegistry, get_cli_registry
+from other_agents_mcp.config import CLI_CONFIGS
 
 
 class TestCLIRegistry:

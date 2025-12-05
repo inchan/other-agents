@@ -14,13 +14,13 @@
 ## Architecture
 The data flow follows this path:
 1.  **MCP Client:** Sends a request (e.g., `run_tool`) via JSON-RPC over stdio.
-2.  **MCP Server (`ai_cli_mcp`):** Receives the request and validates it.
+2.  **MCP Server (`other_agents_mcp`):** Receives the request and validates it.
 3.  **File Handler:** Writes the message to a temporary input file.
 4.  **CLI Execution:** The server executes the target CLI tool, pointing it to the input file.
 5.  **Response:** The CLI writes to an output file; the server reads it and returns the result to the client.
 
 ## Directory Structure
-- `src/ai_cli_mcp/`: Source code for the server.
+- `src/other_agents_mcp/`: Source code for the server.
     - `server.py`: Main entry point and tool definitions (`list_tools`, `call_tool`).
     - `cli_manager.py`: Manages available CLI tools.
     - `file_handler.py`: Handles the file-based communication logic.
@@ -45,10 +45,10 @@ pip install -e ".[dev]"
 ### Running the Server
 ```bash
 # Direct execution (Standard IO)
-python -m ai_cli_mcp.server
+python -m other_agents_mcp.server
 
 # With MCP Inspector (for debugging)
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 ```
 
 ### Testing

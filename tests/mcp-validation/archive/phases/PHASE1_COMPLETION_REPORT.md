@@ -20,7 +20,7 @@ MCP 서버 활성화 및 MCP Inspector 연결 준비
 
 ### 1. server.py MCP SDK Import 활성화
 
-**파일**: `src/ai_cli_mcp/server.py:11-13`
+**파일**: `src/other_agents_mcp/server.py:11-13`
 
 **변경 전**:
 ```python
@@ -46,13 +46,13 @@ $ ./venv/bin/python -c "from mcp.server import Server, stdio_server; print('✅ 
 
 ### 2. Server 인스턴스 및 핸들러 활성화
 
-**파일**: `src/ai_cli_mcp/server.py:22-88`
+**파일**: `src/other_agents_mcp/server.py:22-88`
 
 **생성된 컴포넌트**:
 
 **2.1 Server 인스턴스**:
 ```python
-app = Server("ai-cli-mcp")
+app = Server("other-agents-mcp")
 ```
 
 **2.2 list_tools() 핸들러**:
@@ -102,15 +102,15 @@ async def call_tool(name: str, arguments: Dict[str, Any]):
 
 **검증**:
 ```bash
-$ ./venv/bin/python -c "from ai_cli_mcp.server import app; print('Server:', app.name)"
-Server: ai-cli-mcp
+$ ./venv/bin/python -c "from other_agents_mcp.server import app; print('Server:', app.name)"
+Server: other-agents-mcp
 ```
 
 ---
 
 ### 3. main() 함수 수정
 
-**파일**: `src/ai_cli_mcp/server.py:91-99`
+**파일**: `src/other_agents_mcp/server.py:91-99`
 
 **변경 전**:
 ```python
@@ -127,7 +127,7 @@ def main():
     """메인 함수"""
     logger.info("AI CLI Ping-Pong MCP Server starting...")
     logger.info("MCP SDK version: 1.22.0")
-    logger.info("Server name: ai-cli-mcp")
+    logger.info("Server name: other-agents-mcp")
     logger.info("Available tools: list_available_clis, send_message")
 
     # stdio 서버 시작
@@ -150,20 +150,20 @@ $ ./venv/bin/pip install -e .
 
 **결과**:
 ```
-Successfully installed ai-cli-mcp-0.1.0
+Successfully installed other-agents-mcp-0.1.0
 ```
 
 **효과**:
-- `python -m ai_cli_mcp.server` 실행 가능
+- `python -m other_agents_mcp.server` 실행 가능
 - 코드 변경 시 재설치 불필요 (개발 모드)
-- `from ai_cli_mcp import ...` import 가능
+- `from other_agents_mcp import ...` import 가능
 
 **검증**:
 ```bash
-$ ./venv/bin/pip show ai-cli-mcp
-Name: ai-cli-mcp
+$ ./venv/bin/pip show other-agents-mcp
+Name: other-agents-mcp
 Version: 0.1.0
-Location: /Users/chans/workspace/pilot/ai-cli-ping-pong
+Location: /Users/chans/workspace/pilot/other-agents
 ```
 
 ---
@@ -172,9 +172,9 @@ Location: /Users/chans/workspace/pilot/ai-cli-ping-pong
 
 **Import 테스트**:
 ```bash
-$ ./venv/bin/python -c "from ai_cli_mcp.server import app; print('✅ Server app created'); print('Server name:', app.name)"
+$ ./venv/bin/python -c "from other_agents_mcp.server import app; print('✅ Server app created'); print('Server name:', app.name)"
 ✅ Server app created successfully
-Server name: ai-cli-mcp
+Server name: other-agents-mcp
 ```
 
 **결과**: ✅ 서버 인스턴스 생성 성공
@@ -245,7 +245,7 @@ Server name: ai-cli-mcp
                │
                ▼
 ┌─────────────────────────────────────────┐
-│   Server("ai-cli-mcp")                  │
+│   Server("other-agents-mcp")                  │
 │   - 핸들러 등록 및 관리                    │
 │   - 라이프사이클 관리                      │
 └──────────────┬──────────────────────────┘
@@ -366,9 +366,9 @@ pip install -e .
 
 **MCP Inspector 실행**:
 ```bash
-cd /Users/chans/workspace/pilot/ai-cli-ping-pong
+cd /Users/chans/workspace/pilot/other-agents
 source venv/bin/activate
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 ```
 
 **브라우저**:
@@ -427,7 +427,7 @@ npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
 
 ### 수정된 파일
 
-1. **src/ai_cli_mcp/server.py**
+1. **src/other_agents_mcp/server.py**
    - MCP SDK import 활성화
    - Server 인스턴스 생성
    - 핸들러 데코레이터 활성화
@@ -480,7 +480,7 @@ npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
 ```
 Python: 3.12.12
 MCP SDK: 1.22.0
-패키지: ai-cli-mcp 0.1.0
+패키지: other-agents-mcp 0.1.0
 설치 모드: Editable
 ```
 
@@ -488,12 +488,12 @@ MCP SDK: 1.22.0
 
 **서버 직접 실행**:
 ```bash
-./venv/bin/python -m ai_cli_mcp.server
+./venv/bin/python -m other_agents_mcp.server
 ```
 
 **MCP Inspector 실행**:
 ```bash
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 ```
 
 ---

@@ -285,7 +285,7 @@ Phase 3에서 구축한 메트릭 시스템을 기반으로 Phase 4를 시작할
 
 1. **MCP Inspector 수동 테스트 실행** (사용자 작업)
    ```bash
-   npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+   npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
    ```
    - `MANUAL_TESTING_CHECKLIST.md` 참조
    - 실제 브라우저에서 검증

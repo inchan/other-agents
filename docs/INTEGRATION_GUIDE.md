@@ -31,16 +31,16 @@
 
 ### 1.2 설정 방법
 
-#### 옵션 A: 절대 경로 (권장)
+#### 옵션 A: 상대 경로 (권장)
 
 **파일**: `.claude/settings.local.json`
 
 ```json
 {
   "mcpServers": {
-    "ai-cli-mcp": {
-      "command": "/Users/chans/workspace/pilot/ai-cli-ping-pong/venv/bin/python",
-      "args": ["-m", "ai_cli_mcp.server"]
+    "other-agents-mcp": {
+      "command": "./venv/bin/python",
+      "args": ["-m", "other_agents_mcp.server"]
     }
   }
 }
@@ -58,9 +58,9 @@
 ```json
 {
   "mcpServers": {
-    "ai-cli-mcp": {
+    "other-agents-mcp": {
       "command": "python",
-      "args": ["-m", "ai_cli_mcp.server"],
+      "args": ["-m", "other_agents_mcp.server"],
       "env": {
         "VIRTUAL_ENV": "${workspaceFolder}/venv",
         "PATH": "${workspaceFolder}/venv/bin:${env:PATH}"
@@ -124,10 +124,10 @@ MCP 서버가 연결되었나요? list_tools 도구를 사용해서 확인해주
 ```json
 {
   "mcpServers": {
-    "ai-cli-mcp": {
-      "command": "/Users/chans/workspace/pilot/ai-cli-ping-pong/venv/bin/python",
-      "args": ["-m", "ai_cli_mcp.server"],
-      "cwd": "/Users/chans/workspace/pilot/ai-cli-ping-pong",
+    "other-agents-mcp": {
+      "command": "/path/to/other-agents/venv/bin/python",
+      "args": ["-m", "other_agents_mcp.server"],
+      "cwd": "/path/to/other-agents",
       "env": {}
     }
   }
@@ -145,9 +145,9 @@ MCP 서버가 연결되었나요? list_tools 도구를 사용해서 확인해주
 ```json
 {
   "mcpServers": {
-    "ai-cli-mcp": {
-      "command": "/Users/chans/workspace/pilot/ai-cli-ping-pong/venv/bin/python",
-      "args": ["-m", "ai_cli_mcp.server"]
+    "other-agents-mcp": {
+      "command": "/path/to/other-agents/venv/bin/python",
+      "args": ["-m", "other_agents_mcp.server"]
     },
     "other-mcp-server": {
       "command": "node",
@@ -163,7 +163,7 @@ MCP 서버가 연결되었나요? list_tools 도구를 사용해서 확인해주
 
 2. **설정 확인**:
    - Settings → Developer → MCP Servers
-   - "ai-cli-mcp" 서버 표시 확인
+   - "other-agents-mcp" 서버 표시 확인
 
 3. **테스트**:
    ```
@@ -177,9 +177,9 @@ MCP 서버가 연결되었나요? list_tools 도구를 사용해서 확인해주
 ### 3.1 실행 방법
 
 ```bash
-cd /Users/chans/workspace/pilot/ai-cli-ping-pong
+cd /Users/chans/workspace/pilot/other-agents
 source venv/bin/activate
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 ```
 
 ### 3.2 브라우저 접속
@@ -217,8 +217,8 @@ from mcp.client.stdio import stdio_client
 async def main():
     # 서버 파라미터 설정
     server_params = StdioServerParameters(
-        command="/Users/chans/workspace/pilot/ai-cli-ping-pong/venv/bin/python",
-        args=["-m", "ai_cli_mcp.server"]
+        command="/Users/chans/workspace/pilot/other-agents/venv/bin/python",
+        args=["-m", "other_agents_mcp.server"]
     )
 
     # 클라이언트 세션 시작
@@ -266,8 +266,8 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 async function main() {
   // 전송 생성
   const transport = new StdioClientTransport({
-    command: "/Users/chans/workspace/pilot/ai-cli-ping-pong/venv/bin/python",
-    args: ["-m", "ai_cli_mcp.server"]
+    command: "/Users/chans/workspace/pilot/other-agents/venv/bin/python",
+    args: ["-m", "other_agents_mcp.server"]
   });
 
   // 클라이언트 생성
@@ -321,9 +321,9 @@ main().catch(console.error);
 ```json
 {
   "mcpServers": {
-    "ai-cli-mcp": {
+    "other-agents-mcp": {
       "command": "/path/to/project/venv/bin/python",
-      "args": ["-m", "ai_cli_mcp.server"],
+      "args": ["-m", "other_agents_mcp.server"],
       "env": {
         "LOG_LEVEL": "DEBUG"
       }
@@ -344,10 +344,10 @@ main().catch(console.error);
 ```json
 {
   "mcpServers": {
-    "ai-cli-mcp": {
+    "other-agents-mcp": {
       "command": "/usr/local/bin/python3",
-      "args": ["-m", "ai_cli_mcp.server"],
-      "cwd": "/opt/ai-cli-ping-pong",
+      "args": ["-m", "other_agents_mcp.server"],
+      "cwd": "/opt/other-agents",
       "env": {
         "LOG_LEVEL": "INFO"
       }
@@ -378,7 +378,7 @@ RUN pip install -e .
 COPY src/ src/
 
 # MCP 서버 실행
-CMD ["python", "-m", "ai_cli_mcp.server"]
+CMD ["python", "-m", "other_agents_mcp.server"]
 ```
 
 #### Docker Compose
@@ -387,7 +387,7 @@ CMD ["python", "-m", "ai_cli_mcp.server"]
 version: '3.8'
 
 services:
-  ai-cli-mcp:
+  other-agents-mcp:
     build: .
     stdin_open: true
     tty: true
@@ -398,9 +398,9 @@ services:
 ```json
 {
   "mcpServers": {
-    "ai-cli-mcp": {
+    "other-agents-mcp": {
       "command": "docker",
-      "args": ["run", "-i", "ai-cli-mcp"]
+      "args": ["run", "-i", "other-agents-mcp"]
     }
   }
 }
@@ -429,12 +429,12 @@ Error: Failed to connect to MCP server
 
 2. **서버 직접 실행 테스트**:
    ```bash
-   /path/to/venv/bin/python -m ai_cli_mcp.server
+   /path/to/venv/bin/python -m other_agents_mcp.server
    ```
 
 3. **Import 에러 확인**:
    ```bash
-   python -c "from ai_cli_mcp.server import app; print('OK')"
+   python -c "from other_agents_mcp.server import app; print('OK')"
    ```
 
 #### 문제 2: 도구가 표시되지 않음
@@ -458,9 +458,9 @@ pip install --upgrade mcp
 ```json
 {
   "mcpServers": {
-    "ai-cli-mcp": {
+    "other-agents-mcp": {
       "command": "/path/to/venv/bin/python",
-      "args": ["-m", "ai_cli_mcp.server"],
+      "args": ["-m", "other_agents_mcp.server"],
       "env": {
         "OPENAI_API_KEY": "your-api-key",
         "OPENAI_BASE_URL": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
@@ -477,19 +477,19 @@ pip install --upgrade mcp
 **stderr 출력 보기**:
 ```bash
 # 직접 실행 시 로그 확인
-python -m ai_cli_mcp.server
+python -m other_agents_mcp.server
 ```
 
 **로그 레벨 조정**:
 ```python
-# src/ai_cli_mcp/logger.py
+# src/other_agents_mcp/logger.py
 logger.setLevel(logging.DEBUG)
 ```
 
 #### MCP Inspector로 디버깅
 
 ```bash
-npx @modelcontextprotocol/inspector /path/to/venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector /path/to/venv/bin/python -m other_agents_mcp.server
 ```
 
 **장점**:
@@ -509,7 +509,7 @@ npx @modelcontextprotocol/inspector /path/to/venv/bin/python -m ai_cli_mcp.serve
 useradd -r -s /bin/false mcp-server
 
 # 필요한 권한만 부여
-chmod 750 /path/to/ai-cli-ping-pong
+chmod 750 /path/to/other-agents
 ```
 
 ### 7.2 임시 파일 보안
@@ -580,7 +580,7 @@ def get_cli_version(command: str) -> Optional[str]:
 - [ ] MCP SDK 1.22.0+ 설치
 - [ ] 가상환경 생성 및 활성화
 - [ ] 패키지 설치 (`pip install -e .`)
-- [ ] Import 테스트 (`from ai_cli_mcp.server import app`)
+- [ ] Import 테스트 (`from other_agents_mcp.server import app`)
 
 ### 9.2 설정 파일 작성
 
@@ -624,8 +624,8 @@ from mcp.client.stdio import stdio_client
 
 async def main():
     server_params = StdioServerParameters(
-        command="/Users/chans/workspace/pilot/ai-cli-ping-pong/venv/bin/python",
-        args=["-m", "ai_cli_mcp.server"]
+        command="/Users/chans/workspace/pilot/other-agents/venv/bin/python",
+        args=["-m", "other_agents_mcp.server"]
     )
 
     async with stdio_client(server_params) as (read, write):
@@ -684,9 +684,9 @@ if __name__ == "__main__":
 ```json
 {
   "mcpServers": {
-    "ai-cli-mcp": {
+    "other-agents-mcp": {
       "command": "${workspaceFolder}/venv/bin/python",
-      "args": ["-m", "ai_cli_mcp.server"],
+      "args": ["-m", "other_agents_mcp.server"],
       "env": {
         "LOG_LEVEL": "DEBUG"
       }
@@ -700,10 +700,10 @@ if __name__ == "__main__":
 ```json
 {
   "mcpServers": {
-    "ai-cli-mcp": {
-      "command": "/Users/username/projects/ai-cli-ping-pong/venv/bin/python",
-      "args": ["-m", "ai_cli_mcp.server"],
-      "cwd": "/Users/username/projects/ai-cli-ping-pong"
+    "other-agents-mcp": {
+      "command": "/Users/username/projects/other-agents/venv/bin/python",
+      "args": ["-m", "other_agents_mcp.server"],
+      "cwd": "/Users/username/projects/other-agents"
     }
   }
 }
@@ -714,10 +714,10 @@ if __name__ == "__main__":
 ```json
 {
   "mcpServers": {
-    "ai-cli-mcp": {
-      "command": "C:\\Projects\\ai-cli-ping-pong\\venv\\Scripts\\python.exe",
-      "args": ["-m", "ai_cli_mcp.server"],
-      "cwd": "C:\\Projects\\ai-cli-ping-pong"
+    "other-agents-mcp": {
+      "command": "C:\\Projects\\other-agents\\venv\\Scripts\\python.exe",
+      "args": ["-m", "other_agents_mcp.server"],
+      "cwd": "C:\\Projects\\other-agents"
     }
   }
 }
@@ -728,13 +728,13 @@ if __name__ == "__main__":
 ```json
 {
   "mcpServers": {
-    "ai-cli-mcp": {
+    "other-agents-mcp": {
       "command": "docker",
       "args": [
         "run",
         "-i",
         "--rm",
-        "ai-cli-mcp:latest"
+        "other-agents-mcp:latest"
       ]
     }
   }

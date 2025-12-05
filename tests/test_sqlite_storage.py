@@ -5,8 +5,8 @@ import pytest
 import sqlite3
 from pathlib import Path
 
-from ai_cli_mcp.sqlite_storage import SqliteStorage
-from ai_cli_mcp.task_manager import Task
+from other_agents_mcp.sqlite_storage import SqliteStorage
+from other_agents_mcp.task_manager import Task
 
 @pytest.fixture
 def db_path(tmp_path: Path) -> Path:

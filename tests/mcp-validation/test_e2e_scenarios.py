@@ -9,9 +9,9 @@ import asyncio
 from dataclasses import asdict
 from typing import Dict, Any
 
-from ai_cli_mcp.server import call_tool, list_available_tools as list_tools
-from ai_cli_mcp.cli_manager import list_available_clis, CLIInfo
-from ai_cli_mcp.file_handler import CLINotFoundError, CLITimeoutError, CLIExecutionError
+from other_agents_mcp.server import call_tool, list_available_tools as list_tools
+from other_agents_mcp.cli_manager import list_available_clis, CLIInfo
+from other_agents_mcp.file_handler import CLINotFoundError, CLITimeoutError, CLIExecutionError
 
 
 class TestE2EBasicWorkflow:
@@ -159,7 +159,7 @@ class TestE2EConfigValidation:
     @pytest.mark.asyncio
     async def test_all_configured_clis_present(self):
         """시나리오: 설정된 모든 CLI가 목록에 존재"""
-        from ai_cli_mcp.config import CLI_CONFIGS
+        from other_agents_mcp.config import CLI_CONFIGS
 
         result = await call_tool("list_tools", {})
         returned_cli_names = {cli["name"] for cli in result["clis"]}
@@ -170,7 +170,7 @@ class TestE2EConfigValidation:
     @pytest.mark.asyncio
     async def test_cli_command_matches_config(self):
         """시나리오: CLI 명령어가 설정과 일치"""
-        from ai_cli_mcp.config import CLI_CONFIGS
+        from other_agents_mcp.config import CLI_CONFIGS
 
         result = await call_tool("list_tools", {})
 

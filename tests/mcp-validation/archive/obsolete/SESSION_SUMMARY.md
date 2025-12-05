@@ -76,7 +76,7 @@
 
 **완료 항목**:
 1. ✅ `server.py` MCP SDK import 활성화
-2. ✅ Server 인스턴스 생성 (`app = Server("ai-cli-mcp")`)
+2. ✅ Server 인스턴스 생성 (`app = Server("other-agents-mcp")`)
 3. ✅ `@app.list_tools()` 핸들러 활성화
 4. ✅ `@app.call_tool()` 핸들러 활성화
 5. ✅ main() 함수 수정 (`stdio_server` 실행)
@@ -85,8 +85,8 @@
 
 **검증 결과**:
 ```bash
-$ python -c "from ai_cli_mcp.server import app; print('Server:', app.name)"
-Server: ai-cli-mcp
+$ python -c "from other_agents_mcp.server import app; print('Server:', app.name)"
+Server: other-agents-mcp
 ```
 
 **생성 문서**:
@@ -370,7 +370,7 @@ tests/mcp-validation/test_async_behavior.py
 
 **수동 테스트 (Optional)**:
 ```bash
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 ```
 
 **체크리스트**:
@@ -474,12 +474,12 @@ source venv/bin/activate
 
 **서버 실행**:
 ```bash
-python -m ai_cli_mcp.server
+python -m other_agents_mcp.server
 ```
 
 **MCP Inspector**:
 ```bash
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 ```
 
 **테스트 실행**:

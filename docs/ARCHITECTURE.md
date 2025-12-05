@@ -49,7 +49,7 @@ cat input.txt | cli [extra_args] > output.txt
 ### 3. 모듈 구조
 
 ```
-src/ai_cli_mcp/
+src/other_agents_mcp/
 ├── __init__.py           # 패키지 초기화
 ├── config.py             # CLI 설정 (명령어, 옵션, 타임아웃)
 ├── cli_manager.py        # CLI 감지 및 버전 조회
@@ -162,7 +162,7 @@ def execute_cli_file_based(cli_name: str, message: str, skip_git_repo_check: boo
     파일 기반 CLI 실행
 
     Process:
-    1. 임시 input 파일 생성 (tempfile.mkstemp(), prefix="ai_cli_mcp_input_<uuid>_")
+    1. 임시 input 파일 생성 (tempfile.mkstemp(), prefix="other_agents_mcp_input_<uuid>_")
     2. CLI 실행 (stdin/stdout 파이프 방식)
        - cat input.txt | cli [extra_args] > output.txt
        - subprocess.run() 사용 (stdin=input_file, stdout=output_file)
@@ -208,8 +208,8 @@ def _cleanup_temp_files(*file_paths: str) -> None:
 
 **파일 명명 규칙**:
 ```
-/tmp/ai_cli_mcp_input_<uuid>.txt
-/tmp/ai_cli_mcp_output_<uuid>.txt
+/tmp/other_agents_mcp_input_<uuid>.txt
+/tmp/other_agents_mcp_output_<uuid>.txt
 ```
 
 **의존성**: config.py (CLI_CONFIGS 참조)
@@ -225,7 +225,7 @@ def _cleanup_temp_files(*file_paths: str) -> None:
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
-app = Server("ai-cli-mcp")
+app = Server("other-agents-mcp")
 
 @app.list_tools()
 async def list_tools():
@@ -376,7 +376,7 @@ if __name__ == "__main__":
 
 ### Phase 1 ✅
 - [x] pyproject.toml 존재
-- [x] `from ai_cli_mcp import __version__` 동작
+- [x] `from other_agents_mcp import __version__` 동작
 - [x] `pytest` 실행 시 테스트 발견
 - [x] `CLI_CONFIGS` 딕셔너리에 4개 CLI 정의
 
@@ -394,7 +394,7 @@ if __name__ == "__main__":
 - [x] `pytest tests/test_file_handler.py -v` 통과
 
 ### Phase 3 ✅
-- [x] `python -m ai_cli_mcp.server` 실행 가능
+- [x] `python -m other_agents_mcp.server` 실행 가능
 - [x] MCP 클라이언트 연결 성공
 - [x] list_tools 도구 호출 시 JSON 응답
 - [x] run_tool 도구 호출 시 실제 CLI 응답 반환
@@ -406,7 +406,7 @@ if __name__ == "__main__":
 
 1. **환경 설정**
    ```bash
-   cd /Users/chans/workspace/pilot/ai-cli-ping-pong
+   cd /Users/chans/workspace/pilot/other-agents
    pip install -e ".[dev]"
    ```
 

@@ -1,6 +1,6 @@
 """MCP Server
 
-AI CLI Ping-Pong MCP 서버 진입점
+Other Agents MCP 서버 진입점
 """
 
 import asyncio
@@ -29,7 +29,7 @@ logger = get_logger(__name__)
 
 
 # MCP Server 인스턴스 생성
-app = Server("ai-cli-mcp")
+app = Server("other-agents-mcp")
 
 
 @app.lifespan
@@ -364,9 +364,9 @@ async def call_tool(name: str, arguments: Dict[str, Any]):
 
 def main():
     """메인 함수"""
-    logger.info("AI CLI Ping-Pong MCP Server starting...")
+    logger.info("Other Agents MCP Server starting...")
     logger.info("MCP SDK version: 1.22.0")
-    logger.info("Server name: ai-cli-mcp")
+    logger.info("Server name: other-agents-mcp")
     logger.info("Available tools: list_tools, run_tool, get_run_status, add_tool, run_multi_tools")
 
     # stdio 서버 시작

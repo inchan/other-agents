@@ -169,7 +169,7 @@ pip install -e .
 pytest tests/ -v --cov
 
 # 4. MCP 서버 실행
-python -m ai_cli_mcp.server
+python -m other_agents_mcp.server
 ```
 
 ### 자세한 문서
@@ -242,7 +242,7 @@ python -m ai_cli_mcp.server
 ```
 MCP Client (Claude Code, Claude Desktop)
     ↓ stdio (JSON-RPC 2.0)
-MCP Server (ai_cli_mcp)
+MCP Server (other_agents_mcp)
     ↓ File-based I/O (stdin/stdout pipe)
 AI CLI (claude, gemini, codex, qwen)
 ```

@@ -362,9 +362,9 @@ def test_cli_not_found_error_format(self):
    파일: `~/.config/claude/mcp_servers.json`
    ```json
    {
-     "ai-cli-mcp": {
+     "other-agents-mcp": {
        "command": "python",
-       "args": ["-m", "ai_cli_mcp.server"],
+       "args": ["-m", "other_agents_mcp.server"],
        "cwd": "/path/to/project"
      }
    }
@@ -381,9 +381,9 @@ def test_cli_not_found_error_format(self):
    ```json
    {
      "mcpServers": {
-       "ai-cli-mcp": {
+       "other-agents-mcp": {
          "command": "python",
-         "args": ["-m", "ai_cli_mcp.server"]
+         "args": ["-m", "other_agents_mcp.server"]
        }
      }
    }

@@ -66,7 +66,7 @@ pip install -e ".[dev]"
 pip show mcp
 
 # 서버 import 테스트
-python -c "from ai_cli_mcp.server import app; print('Server:', app.name)"
+python -c "from other_agents_mcp.server import app; print('Server:', app.name)"
 ```
 
 ## 🧪 Development
@@ -78,10 +78,10 @@ python -c "from ai_cli_mcp.server import app; print('Server:', app.name)"
 source venv/bin/activate
 
 # Run server directly (for debugging)
-python -m ai_cli_mcp.server
+python -m other_agents_mcp.server
 
 # Run with MCP Inspector (for testing)
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 ```
 
 ### Running Tests
@@ -91,7 +91,7 @@ npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
 pytest tests/ -v
 
 # Run tests with coverage
-pytest tests/ -v --cov=src/ai_cli_mcp --cov-report=term-missing
+pytest tests/ -v --cov=src/other_agents_mcp --cov-report=term-missing
 
 # Run specific test file
 pytest tests/test_config.py -v
@@ -130,7 +130,7 @@ pytest tests/mcp-validation/ -v
 ```
 MCP Client (Claude Code)
     ↓ stdio (JSON-RPC)
-MCP Server (ai_cli_mcp)
+MCP Server (other_agents_mcp)
     ↓ File-based I/O
 AI CLI (claude, gemini, codex, qwen)
 ```
@@ -177,7 +177,7 @@ Development artifacts (plans, reports, analysis) are stored locally in the `.art
 ```bash
 # SQLite 저장소를 사용하려면 서버 실행 전 환경 변수를 설정합니다.
 export MCP_STORAGE_TYPE=sqlite
-python -m ai_cli_mcp.server
+python -m other_agents_mcp.server
 ```
 
 ## Usage
@@ -188,9 +188,9 @@ python -m ai_cli_mcp.server
 ```json
 {
   "mcpServers": {
-    "ai-cli-mcp": {
-      "command": "/Users/chans/workspace/pilot/ai-cli-ping-pong/venv/bin/python",
-      "args": ["-m", "ai_cli_mcp.server"]
+    "other-agents-mcp": {
+      "command": "./venv/bin/python",
+      "args": ["-m", "other_agents_mcp.server"]
     }
   }
 }
@@ -199,10 +199,10 @@ python -m ai_cli_mcp.server
 **Claude Desktop 설정** (`~/.config/claude/mcp_servers.json`):
 ```json
 {
-  "ai-cli-mcp": {
-    "command": "/Users/chans/workspace/pilot/ai-cli-ping-pong/venv/bin/python",
-    "args": ["-m", "ai_cli_mcp.server"],
-    "cwd": "/Users/chans/workspace/pilot/ai-cli-ping-pong"
+  "other-agents-mcp": {
+    "command": "/path/to/other-agents/venv/bin/python",
+    "args": ["-m", "other_agents_mcp.server"],
+    "cwd": "/path/to/other-agents"
   }
 }
 ```

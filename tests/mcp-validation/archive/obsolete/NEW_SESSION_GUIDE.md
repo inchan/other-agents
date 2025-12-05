@@ -55,12 +55,12 @@
 **환경 정보**:
 - **Python**: 3.12.12 (가상 환경: `venv/`)
 - **MCP SDK**: 1.22.0
-- **프로젝트 경로**: `/Users/chans/workspace/pilot/ai-cli-ping-pong`
+- **프로젝트 경로**: `/Users/chans/workspace/pilot/other-agents`
 - **작업 공간**: `tests/mcp-validation/`
 
 **가상 환경 활성화**:
 ```bash
-cd /Users/chans/workspace/pilot/ai-cli-ping-pong
+cd /Users/chans/workspace/pilot/other-agents
 source venv/bin/activate
 ```
 
@@ -73,7 +73,7 @@ python --version
 pip show mcp
 
 # 서버 import 테스트
-python -c "from ai_cli_mcp.server import app; print('Server:', app.name)"
+python -c "from other_agents_mcp.server import app; print('Server:', app.name)"
 
 # 테스트 실행
 pytest tests/mcp-validation/test_mcp_protocol.py -v
@@ -135,7 +135,7 @@ MCP Inspector로 서버를 테스트하는 방법을 안내해주세요.
 
 **실행 명령어**:
 ```bash
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 ```
 
 ---
@@ -181,12 +181,12 @@ ls -la tests/mcp-validation/
 
 **해결**:
 ```bash
-cd /Users/chans/workspace/pilot/ai-cli-ping-pong
+cd /Users/chans/workspace/pilot/other-agents
 source venv/bin/activate
 
 # 확인
 which python
-# 출력: /Users/chans/workspace/pilot/ai-cli-ping-pong/venv/bin/python
+# 출력: /Users/chans/workspace/pilot/other-agents/venv/bin/python
 ```
 
 ---
@@ -269,7 +269,7 @@ test_mcp_protocol.py를 참고하여 작성해주세요."
 pytest tests/mcp-validation/ -v
 
 # 커버리지 포함
-pytest tests/mcp-validation/ -v --cov=src/ai_cli_mcp
+pytest tests/mcp-validation/ -v --cov=src/other_agents_mcp
 
 # 특정 테스트 파일
 pytest tests/mcp-validation/test_mcp_protocol.py -v
@@ -287,10 +287,10 @@ pytest tests/mcp-validation/test_mcp_protocol.py::TestListToolsHandler::test_lis
 
 ```bash
 # 직접 실행 (디버깅용)
-python -m ai_cli_mcp.server
+python -m other_agents_mcp.server
 
 # MCP Inspector로 실행 (테스트용)
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 ```
 
 ---
@@ -375,7 +375,7 @@ grep -r "Phase 2" tests/mcp-validation/
 - Mock을 사용한 CLI 실행 테스트 포함
 - 기존 test_mcp_protocol.py와 유사한 스타일로 작성
 
-작업 공간: /Users/chans/workspace/pilot/ai-cli-ping-pong
+작업 공간: /Users/chans/workspace/pilot/other-agents
 가상 환경: venv/ (Python 3.12.12)
 ```
 

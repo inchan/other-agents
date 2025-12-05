@@ -20,14 +20,14 @@
 ### 1. 가상 환경 활성화
 
 ```bash
-cd /Users/chans/workspace/pilot/ai-cli-ping-pong
+cd /Users/chans/workspace/pilot/other-agents
 source venv/bin/activate
 ```
 
 **확인**:
 ```bash
 which python
-# 출력: /Users/chans/workspace/pilot/ai-cli-ping-pong/venv/bin/python
+# 출력: /Users/chans/workspace/pilot/other-agents/venv/bin/python
 
 python --version
 # 출력: Python 3.12.12
@@ -38,12 +38,12 @@ python --version
 ### 2. MCP 서버 작동 확인
 
 ```bash
-python -c "from ai_cli_mcp.server import app; print('Server:', app.name)"
+python -c "from other_agents_mcp.server import app; print('Server:', app.name)"
 ```
 
 **예상 출력**:
 ```
-Server: ai-cli-mcp
+Server: other-agents-mcp
 ```
 
 ---
@@ -54,7 +54,7 @@ Server: ai-cli-mcp
 
 **터미널에서 실행**:
 ```bash
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 ```
 
 **예상 출력**:
@@ -75,7 +75,7 @@ Opening browser...
 
 **터미널 1 (Inspector 실행)**:
 ```bash
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 ```
 
 **브라우저**:
@@ -89,7 +89,7 @@ npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
 
 - [ ] MCP Inspector UI가 브라우저에서 열림
 - [ ] "Connected to server" 메시지 확인
-- [ ] 서버 이름 "ai-cli-mcp" 표시
+- [ ] 서버 이름 "other-agents-mcp" 표시
 - [ ] 연결 상태가 녹색/활성으로 표시
 
 **스크린샷 위치**: (선택) `tests/mcp-validation/screenshots/01-connection.png`
@@ -268,7 +268,7 @@ MCP Inspector를 실행한 터미널에서 다음 로그 확인:
 ```
 AI CLI Ping-Pong MCP Server starting...
 MCP SDK version: 1.22.0
-Server name: ai-cli-mcp
+Server name: other-agents-mcp
 Available tools: list_available_clis, send_message
 ```
 
@@ -306,7 +306,7 @@ Error: Cannot find module '@modelcontextprotocol/inspector'
 ```bash
 # npm 캐시 정리 후 재시도
 npm cache clean --force
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 ```
 
 ---
@@ -320,7 +320,7 @@ Inspector UI에 "Failed to connect to server" 표시
 1. Python 가상 환경 활성화 여부
 2. 서버 경로가 정확한지 확인
    ```bash
-   ./venv/bin/python -m ai_cli_mcp.server
+   ./venv/bin/python -m other_agents_mcp.server
    ```
 3. MCP SDK 설치 확인
    ```bash
@@ -331,7 +331,7 @@ Inspector UI에 "Failed to connect to server" 표시
 - Inspector 재시작
 - 서버 경로 절대 경로로 변경
   ```bash
-  npx @modelcontextprotocol/inspector /Users/chans/workspace/pilot/ai-cli-ping-pong/venv/bin/python -m ai_cli_mcp.server
+  npx @modelcontextprotocol/inspector /Users/chans/workspace/pilot/other-agents/venv/bin/python -m other_agents_mcp.server
   ```
 
 ---
@@ -345,7 +345,7 @@ Inspector에서 도구 목록이 비어 있음
 1. `server.py`의 `@app.list_tools()` 데코레이터 확인
 2. import 에러 확인
    ```bash
-   ./venv/bin/python -c "from ai_cli_mcp.server import app, list_tools"
+   ./venv/bin/python -c "from other_agents_mcp.server import app, list_tools"
    ```
 
 ---
@@ -364,7 +364,7 @@ Inspector에서 도구 목록이 비어 있음
 2. Python 직접 테스트
    ```bash
    ./venv/bin/python -c "
-   from ai_cli_mcp.cli_manager import list_available_clis
+   from other_agents_mcp.cli_manager import list_available_clis
    print(list_available_clis())
    "
    ```

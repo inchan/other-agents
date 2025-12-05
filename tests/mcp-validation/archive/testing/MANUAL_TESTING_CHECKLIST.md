@@ -13,7 +13,7 @@
 - [ ] 가상 환경 활성화 완료 (`source venv/bin/activate`)
 - [ ] Python 3.12.12 확인 (`python --version`)
 - [ ] MCP SDK 1.22.0 설치 확인
-- [ ] 패키지 editable install 확인 (`pip show ai-cli-mcp`)
+- [ ] 패키지 editable install 확인 (`pip show other-agents-mcp`)
 
 ### Inspector 설치 확인
 
@@ -29,7 +29,7 @@ npx @modelcontextprotocol/inspector --version
 
 **실행 명령어**:
 ```bash
-npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
+npx @modelcontextprotocol/inspector ./venv/bin/python -m other_agents_mcp.server
 ```
 
 **체크리스트**:
@@ -42,7 +42,7 @@ npx @modelcontextprotocol/inspector ./venv/bin/python -m ai_cli_mcp.server
 
 **Inspector UI에서 확인**:
 - [ ] "Connected" 상태 표시
-- [ ] 서버 이름 표시: `ai-cli-mcp`
+- [ ] 서버 이름 표시: `other-agents-mcp`
 - [ ] 연결 시간 표시
 - [ ] 에러 메시지 없음
 - [ ] 로그 출력 확인 가능

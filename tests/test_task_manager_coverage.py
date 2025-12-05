@@ -4,7 +4,7 @@ import pytest
 import asyncio
 import time
 from unittest.mock import MagicMock, patch, AsyncMock
-from ai_cli_mcp.task_manager import (
+from other_agents_mcp.task_manager import (
     TaskManager, 
     InMemoryStorage, 
     Task, 
@@ -12,7 +12,7 @@ from ai_cli_mcp.task_manager import (
     _task_manager_instance,
     SqliteStorage
 )
-from ai_cli_mcp import config
+from other_agents_mcp import config
 
 class TestInMemoryStorageCoverage:
     """InMemoryStorage 커버리지 테스트"""
@@ -121,8 +121,8 @@ class TestTaskManagerCoverage:
     async def test_singleton_getter(self):
         """get_task_manager 싱글톤 테스트"""
         # Reset singleton
-        import ai_cli_mcp.task_manager
-        ai_cli_mcp.task_manager._task_manager_instance = None
+        import other_agents_mcp.task_manager
+        other_agents_mcp.task_manager._task_manager_instance = None
         
         # 1. Default (InMemory)
         with patch.object(config, 'STORAGE_TYPE', 'memory'):
@@ -133,14 +133,14 @@ class TestTaskManagerCoverage:
             assert mgr1 is mgr2
             
         # Reset again
-        ai_cli_mcp.task_manager._task_manager_instance = None
+        other_agents_mcp.task_manager._task_manager_instance = None
         
         # 2. Sqlite
         # SqliteStorage 클래스 자체를 모킹하면 isinstance 체크에서 실패하므로
         # __init__ 메서드만 모킹하여 실제 파일 생성을 방지합니다.
         with patch.object(config, 'STORAGE_TYPE', 'sqlite'), \
-             patch('ai_cli_mcp.sqlite_storage.SqliteStorage.__init__', return_value=None) as MockInit, \
-             patch('ai_cli_mcp.sqlite_storage.SqliteStorage.recover_tasks', new_callable=AsyncMock) as MockRecover:
+             patch('other_agents_mcp.sqlite_storage.SqliteStorage.__init__', return_value=None) as MockInit, \
+             patch('other_agents_mcp.sqlite_storage.SqliteStorage.recover_tasks', new_callable=AsyncMock) as MockRecover:
             
             mgr3 = get_task_manager()
             
