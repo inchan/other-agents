@@ -23,11 +23,14 @@ class TestExecuteCliFileBased:
         with pytest.raises(CLINotFoundError):
             execute_cli_file_based("nonexistent-cli-12345", "test message")
 
+    @patch("other_agents_mcp.file_handler.is_cli_installed", return_value=True)
     @patch("other_agents_mcp.file_handler.subprocess.run")
     @patch("tempfile.mkstemp")
     @patch("os.close")
     @patch("os.unlink")
-    def test_creates_temp_files(self, mock_unlink, mock_close, mock_mkstemp, mock_run):
+    def test_creates_temp_files(
+        self, mock_unlink, mock_close, mock_mkstemp, mock_run, mock_is_installed
+    ):
         """임시 파일을 생성해야 함 (최적화: 완전 모킹)"""
         # Mock 설정
         mock_mkstemp.side_effect = [(1, "/tmp/input.txt"), (2, "/tmp/output.txt")]
