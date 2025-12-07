@@ -6,15 +6,15 @@ Priority 1 테스트: server.py의 비동기 핸들러 및 도구 실행 로직
 import asyncio
 import pytest
 import time
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, MagicMock
 
-from other_agents_mcp.server import app, call_tool
+from other_agents_mcp.server import call_tool
 from other_agents_mcp.file_handler import (
     CLINotFoundError,
     CLITimeoutError,
     CLIExecutionError,
 )
-from other_agents_mcp.task_manager import TaskManager, get_task_manager, InMemoryStorage, TaskStatus # type: ignore
+from other_agents_mcp.task_manager import TaskManager, get_task_manager, InMemoryStorage  # type: ignore
 
 
 class TestServerInitialization:
@@ -104,11 +104,9 @@ class TestCallToolRunTool:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.return_value = "Success response"
 
-            result = await call_tool("use_agent", {
-                "cli_name": "claude",
-                "message": "Hello, world!",
-                "run_async": False
-            })
+            result = await call_tool(
+                "use_agent", {"cli_name": "claude", "message": "Hello, world!", "run_async": False}
+            )
 
             assert "response" in result
             assert result["response"] == "Success response"
@@ -120,10 +118,9 @@ class TestCallToolRunTool:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.return_value = "Success"
 
-            result = await call_tool("use_agent", {
-                "cli_name": "claude",
-                "message": "Hello"
-            }) # run_async 생략
+            result = await call_tool(
+                "use_agent", {"cli_name": "claude", "message": "Hello"}
+            )  # run_async 생략
 
             assert "response" in result
             mock_execute.assert_called_once()
@@ -131,7 +128,7 @@ class TestCallToolRunTool:
     @pytest.mark.asyncio
     async def test_call_tool_run_tool_async_success(self):
         """use_agent 비동기 실행 (run_async=True)"""
-        
+
         # TaskManager 초기화 (테스트용)
         TaskManager._task_manager_instance = None
         manager = get_task_manager()
@@ -141,15 +138,13 @@ class TestCallToolRunTool:
         try:
             # 실제 실행 함수는 모킹
             mock_execution = MagicMock(return_value="Async Result")
-            
+
             # server.py의 execute_cli_file_based를 패치
             # functools.partial로 감싸지기 때문에 호출 시점에 모킹된 함수가 사용됨
             with patch("other_agents_mcp.server.execute_cli_file_based", new=mock_execution):
-                result = await call_tool("use_agent", {
-                    "cli_name": "claude",
-                    "message": "Async Test",
-                    "run_async": True
-                })
+                result = await call_tool(
+                    "use_agent", {"cli_name": "claude", "message": "Async Test", "run_async": True}
+                )
 
                 # 즉시 반환 확인
                 assert "task_id" in result
@@ -177,11 +172,14 @@ class TestCallToolRunTool:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.return_value = "Response with system prompt"
 
-            result = await call_tool("use_agent", {
-                "cli_name": "claude",
-                "message": "Tell me a story",
-                "system_prompt": "You are a storyteller",
-            })
+            result = await call_tool(
+                "use_agent",
+                {
+                    "cli_name": "claude",
+                    "message": "Tell me a story",
+                    "system_prompt": "You are a storyteller",
+                },
+            )
 
             assert "response" in result
             mock_execute.assert_called_once()
@@ -195,10 +193,13 @@ class TestCallToolRunTool:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.side_effect = CLINotFoundError("claude (claude)가 설치되지 않았습니다")
 
-            result = await call_tool("use_agent", {
-                "cli_name": "claude",
-                "message": "Hello",
-            })
+            result = await call_tool(
+                "use_agent",
+                {
+                    "cli_name": "claude",
+                    "message": "Hello",
+                },
+            )
 
             assert "error" in result
             assert result["type"] == "CLINotFoundError"
@@ -210,10 +211,13 @@ class TestCallToolRunTool:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.side_effect = CLIExecutionError("CLI 실행 실패 (코드 1)")
 
-            result = await call_tool("use_agent", {
-                "cli_name": "claude",
-                "message": "Request",
-            })
+            result = await call_tool(
+                "use_agent",
+                {
+                    "cli_name": "claude",
+                    "message": "Request",
+                },
+            )
 
             assert "error" in result
             assert result["type"] == "CLIExecutionError"
@@ -225,11 +229,9 @@ class TestCallToolRunTool:
         with patch("other_agents_mcp.server.execute_with_session") as mock_execute:
             mock_execute.side_effect = ValueError("Invalid session ID format")
 
-            result = await call_tool("use_agent", {
-                "cli_name": "claude",
-                "message": "Test",
-                "session_id": "invalid_id"
-            })
+            result = await call_tool(
+                "use_agent", {"cli_name": "claude", "message": "Test", "session_id": "invalid_id"}
+            )
 
             assert "error" in result
             assert result["type"] == "SessionValidationError"
@@ -241,10 +243,13 @@ class TestCallToolRunTool:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.side_effect = CLITimeoutError("CLI 타임아웃 (300초)")
 
-            result = await call_tool("use_agent", {
-                "cli_name": "claude",
-                "message": "Request",
-            })
+            result = await call_tool(
+                "use_agent",
+                {
+                    "cli_name": "claude",
+                    "message": "Request",
+                },
+            )
 
             assert "error" in result
             assert result["type"] == "CLITimeoutError"
@@ -269,22 +274,23 @@ class TestCallToolGetRunStatus:
     async def test_get_task_status_not_found(self, setup_task_manager):
         """존재하지 않는 task_id 조회"""
         result = await call_tool("get_task_status", {"task_id": "invalid-id"})
-        
+
         assert result["status"] == "not_found"
         assert "error" in result
 
     @pytest.mark.asyncio
     async def test_get_task_status_completed(self, setup_task_manager):
         """완료된 작업 상태 조회"""
+
         # 수동으로 작업 추가
         def dummy_task():
             return "Done"
-        
+
         task_id = await setup_task_manager.start_task(dummy_task)
-        await asyncio.sleep(0.1) # 완료 대기
+        await asyncio.sleep(0.1)  # 완료 대기
 
         result = await call_tool("get_task_status", {"task_id": task_id})
-        
+
         assert result["status"] == "completed"
         assert result["result"] == "Done"
 
@@ -295,10 +301,13 @@ class TestCallToolAddTool:
     @pytest.mark.asyncio
     async def test_call_tool_add_tool_minimal(self):
         """add_agent 최소 필드 (name, command만)"""
-        result = await call_tool("add_agent", {
-            "name": "deepseek",
-            "command": "deepseek",
-        })
+        result = await call_tool(
+            "add_agent",
+            {
+                "name": "deepseek",
+                "command": "deepseek",
+            },
+        )
 
         assert result["success"] is True
         assert result["message"] == "CLI 'deepseek' 추가 완료"
@@ -308,15 +317,18 @@ class TestCallToolAddTool:
     @pytest.mark.asyncio
     async def test_call_tool_add_tool_full_options(self):
         """add_agent 전체 옵션"""
-        result = await call_tool("add_agent", {
-            "name": "custom_gpt",
-            "command": "custom-gpt",
-            "extra_args": ["--mode", "chat"],
-            "timeout": 120,
-            "env_vars": {"API_KEY": "secret"},
-            "supports_skip_git_check": True,
-            "skip_git_check_position": "after_extra_args",
-        })
+        result = await call_tool(
+            "add_agent",
+            {
+                "name": "custom_gpt",
+                "command": "custom-gpt",
+                "extra_args": ["--mode", "chat"],
+                "timeout": 120,
+                "env_vars": {"API_KEY": "secret"},
+                "supports_skip_git_check": True,
+                "skip_git_check_position": "after_extra_args",
+            },
+        )
 
         assert result["success"] is True
         assert result["message"] == "CLI 'custom_gpt' 추가 완료"
@@ -327,10 +339,13 @@ class TestCallToolAddTool:
     async def test_call_tool_add_tool_then_list(self):
         """add_agent 후 list_agents에 반영"""
         # 1. CLI 추가
-        add_result = await call_tool("add_agent", {
-            "name": "test_cli",
-            "command": "test-cli",
-        })
+        add_result = await call_tool(
+            "add_agent",
+            {
+                "name": "test_cli",
+                "command": "test-cli",
+            },
+        )
         assert add_result["success"] is True
 
         # 2. 목록에서 확인
@@ -344,10 +359,13 @@ class TestCallToolAddTool:
         with patch("other_agents_mcp.server.get_cli_registry") as mock_registry:
             mock_registry.return_value.add_cli.side_effect = Exception("Registry error")
 
-            result = await call_tool("add_agent", {
-                "name": "bad_cli",
-                "command": "bad",
-            })
+            result = await call_tool(
+                "add_agent",
+                {
+                    "name": "bad_cli",
+                    "command": "bad",
+                },
+            )
 
             assert "error" in result
             assert result["type"] == "AddCLIError"
@@ -380,20 +398,26 @@ class TestCallToolIntegration:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.return_value = "Test response"
 
-            send_result = await call_tool("use_agent", {
-                "cli_name": "claude",
-                "message": "Test",
-            })
+            send_result = await call_tool(
+                "use_agent",
+                {
+                    "cli_name": "claude",
+                    "message": "Test",
+                },
+            )
             assert "response" in send_result
 
     @pytest.mark.asyncio
     async def test_call_tool_add_then_list(self):
         """add_agent → list 순서대로 호출"""
         # 1. CLI 추가
-        add_result = await call_tool("add_agent", {
-            "name": "integration_test",
-            "command": "it-cmd",
-        })
+        add_result = await call_tool(
+            "add_agent",
+            {
+                "name": "integration_test",
+                "command": "it-cmd",
+            },
+        )
         assert add_result["success"] is True
 
         # 2. 목록에서 확인
@@ -411,10 +435,13 @@ class TestCallToolErrorHandling:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.side_effect = CLINotFoundError("claude가 설치되지 않았습니다")
 
-            result = await call_tool("use_agent", {
-                "cli_name": "claude",
-                "message": "Test",
-            })
+            result = await call_tool(
+                "use_agent",
+                {
+                    "cli_name": "claude",
+                    "message": "Test",
+                },
+            )
 
             assert "claude" in result["error"]
 
@@ -424,10 +451,13 @@ class TestCallToolErrorHandling:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.side_effect = CLITimeoutError("Timeout")
 
-            result = await call_tool("use_agent", {
-                "cli_name": "claude",
-                "message": "Test",
-            })
+            result = await call_tool(
+                "use_agent",
+                {
+                    "cli_name": "claude",
+                    "message": "Test",
+                },
+            )
 
             assert "type" in result
             assert result["type"] == "CLITimeoutError"
@@ -443,9 +473,7 @@ class TestCallToolRunMultiTools:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.return_value = "Response from CLI"
 
-            result = await call_tool("use_agents", {
-                "message": "Review this code"
-            })
+            result = await call_tool("use_agents", {"message": "Review this code"})
 
             # 응답 구조 검증
             assert "prompt" in result
@@ -469,10 +497,9 @@ class TestCallToolRunMultiTools:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.return_value = "Specific response"
 
-            result = await call_tool("use_agents", {
-                "message": "Plan this feature",
-                "cli_names": ["claude", "gemini"]
-            })
+            result = await call_tool(
+                "use_agents", {"message": "Plan this feature", "cli_names": ["claude", "gemini"]}
+            )
 
             assert "responses" in result
             assert len(result["responses"]) == 2
@@ -498,12 +525,12 @@ class TestCallToolRunMultiTools:
         with patch("other_agents_mcp.server.execute_cli_file_based", side_effect=mock_execute):
             start_time = time.time()
 
-            result = await call_tool("use_agents", {
-                "message": "Test parallel",
-                "cli_names": ["claude", "gemini", "codex"]
-            })
+            result = await call_tool(
+                "use_agents",
+                {"message": "Test parallel", "cli_names": ["claude", "gemini", "codex"]},
+            )
 
-            elapsed_time = time.time() - start_time
+            time.time() - start_time
 
             # 모든 CLI가 호출됨
             assert len(result["responses"]) == 3
@@ -519,17 +546,22 @@ class TestCallToolRunMultiTools:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.return_value = "Response"
 
-            result = await call_tool("use_agents", {
-                "message": "Explain this",
-                "cli_names": ["claude"],
-                "system_prompt": "You are a code reviewer"
-            })
+            await call_tool(
+                "use_agents",
+                {
+                    "message": "Explain this",
+                    "cli_names": ["claude"],
+                    "system_prompt": "You are a code reviewer",
+                },
+            )
 
             # execute_cli_file_based가 system_prompt와 함께 호출되었는지 확인
             call_args = mock_execute.call_args
             # system_prompt는 4번째 위치 인자 (cli_name, message, skip_git_repo_check, system_prompt)
-            assert call_args.args[3] == "You are a code reviewer" or \
-                   call_args.kwargs.get("system_prompt") == "You are a code reviewer"
+            assert (
+                call_args.args[3] == "You are a code reviewer"
+                or call_args.kwargs.get("system_prompt") == "You are a code reviewer"
+            )
 
     @pytest.mark.asyncio
     async def test_run_multi_tools_with_timeout(self):
@@ -537,11 +569,9 @@ class TestCallToolRunMultiTools:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.return_value = "Response"
 
-            result = await call_tool("use_agents", {
-                "message": "Quick task",
-                "cli_names": ["claude"],
-                "timeout": 60
-            })
+            await call_tool(
+                "use_agents", {"message": "Quick task", "cli_names": ["claude"], "timeout": 60}
+            )
 
             # timeout이 전달되었는지 확인 (마지막 인자)
             call_args = mock_execute.call_args
@@ -550,6 +580,7 @@ class TestCallToolRunMultiTools:
     @pytest.mark.asyncio
     async def test_run_multi_tools_cli_not_found_error(self):
         """일부 CLI가 설치되지 않은 경우"""
+
         def mock_execute(cli_name, *args, **kwargs):
             if cli_name == "claude":
                 return "Success"
@@ -558,10 +589,9 @@ class TestCallToolRunMultiTools:
             return "Success"
 
         with patch("other_agents_mcp.server.execute_cli_file_based", side_effect=mock_execute):
-            result = await call_tool("use_agents", {
-                "message": "Test",
-                "cli_names": ["claude", "nonexistent"]
-            })
+            result = await call_tool(
+                "use_agents", {"message": "Test", "cli_names": ["claude", "nonexistent"]}
+            )
 
             # claude는 성공
             assert result["responses"]["claude"]["success"] is True
@@ -575,6 +605,7 @@ class TestCallToolRunMultiTools:
     @pytest.mark.asyncio
     async def test_run_multi_tools_timeout_error(self):
         """일부 CLI가 타임아웃"""
+
         def mock_execute(cli_name, *args, **kwargs):
             if cli_name == "claude":
                 return "Quick response"
@@ -583,10 +614,9 @@ class TestCallToolRunMultiTools:
             return "Response"
 
         with patch("other_agents_mcp.server.execute_cli_file_based", side_effect=mock_execute):
-            result = await call_tool("use_agents", {
-                "message": "Test",
-                "cli_names": ["claude", "slow_cli"]
-            })
+            result = await call_tool(
+                "use_agents", {"message": "Test", "cli_names": ["claude", "slow_cli"]}
+            )
 
             # claude는 성공
             assert result["responses"]["claude"]["success"] is True
@@ -598,6 +628,7 @@ class TestCallToolRunMultiTools:
     @pytest.mark.asyncio
     async def test_run_multi_tools_execution_error(self):
         """일부 CLI 실행 에러"""
+
         def mock_execute(cli_name, *args, **kwargs):
             if cli_name == "claude":
                 return "Success"
@@ -606,10 +637,9 @@ class TestCallToolRunMultiTools:
             return "Success"
 
         with patch("other_agents_mcp.server.execute_cli_file_based", side_effect=mock_execute):
-            result = await call_tool("use_agents", {
-                "message": "Test",
-                "cli_names": ["claude", "broken_cli"]
-            })
+            result = await call_tool(
+                "use_agents", {"message": "Test", "cli_names": ["claude", "broken_cli"]}
+            )
 
             # claude는 성공
             assert result["responses"]["claude"]["success"] is True
@@ -621,12 +651,13 @@ class TestCallToolRunMultiTools:
     @pytest.mark.asyncio
     async def test_run_multi_tools_mixed_results(self):
         """성공/실패가 섞인 결과"""
+
         def mock_execute(cli_name, *args, **kwargs):
             responses = {
                 "claude": "Claude response",
                 "gemini": CLINotFoundError("gemini not found"),
                 "codex": "Codex response",
-                "qwen": CLITimeoutError("qwen timeout")
+                "qwen": CLITimeoutError("qwen timeout"),
             }
             result = responses.get(cli_name, "Default")
             if isinstance(result, Exception):
@@ -634,10 +665,10 @@ class TestCallToolRunMultiTools:
             return result
 
         with patch("other_agents_mcp.server.execute_cli_file_based", side_effect=mock_execute):
-            result = await call_tool("use_agents", {
-                "message": "Review code",
-                "cli_names": ["claude", "gemini", "codex", "qwen"]
-            })
+            result = await call_tool(
+                "use_agents",
+                {"message": "Review code", "cli_names": ["claude", "gemini", "codex", "qwen"]},
+            )
 
             # 성공 케이스
             assert result["responses"]["claude"]["success"] is True
@@ -654,9 +685,7 @@ class TestCallToolRunMultiTools:
             # 빈 목록 반환
             mock_list.return_value = []
 
-            result = await call_tool("use_agents", {
-                "message": "Test"
-            })
+            result = await call_tool("use_agents", {"message": "Test"})
 
             # 응답은 있지만 비어있음
             assert "responses" in result
@@ -668,10 +697,7 @@ class TestCallToolRunMultiTools:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.return_value = "Single response"
 
-            result = await call_tool("use_agents", {
-                "message": "Test",
-                "cli_names": ["claude"]
-            })
+            result = await call_tool("use_agents", {"message": "Test", "cli_names": ["claude"]})
 
             assert len(result["responses"]) == 1
             assert "claude" in result["responses"]
@@ -680,6 +706,7 @@ class TestCallToolRunMultiTools:
     @pytest.mark.asyncio
     async def test_run_multi_tools_unexpected_error(self):
         """예상치 못한 에러 처리"""
+
         def mock_execute(cli_name, *args, **kwargs):
             if cli_name == "claude":
                 return "Success"
@@ -688,10 +715,9 @@ class TestCallToolRunMultiTools:
             return "Success"
 
         with patch("other_agents_mcp.server.execute_cli_file_based", side_effect=mock_execute):
-            result = await call_tool("use_agents", {
-                "message": "Test",
-                "cli_names": ["claude", "error_cli"]
-            })
+            result = await call_tool(
+                "use_agents", {"message": "Test", "cli_names": ["claude", "error_cli"]}
+            )
 
             # claude는 성공
             assert result["responses"]["claude"]["success"] is True
@@ -711,10 +737,13 @@ class TestCallToolEdgeCases:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.return_value = ""
 
-            result = await call_tool("use_agent", {
-                "cli_name": "claude",
-                "message": "",
-            })
+            result = await call_tool(
+                "use_agent",
+                {
+                    "cli_name": "claude",
+                    "message": "",
+                },
+            )
 
             assert "response" in result
 
@@ -726,9 +755,12 @@ class TestCallToolEdgeCases:
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
             mock_execute.return_value = "Response"
 
-            result = await call_tool("use_agent", {
-                "cli_name": "claude",
-                "message": long_message,
-            })
+            result = await call_tool(
+                "use_agent",
+                {
+                    "cli_name": "claude",
+                    "message": long_message,
+                },
+            )
 
             assert "response" in result

@@ -58,3 +58,4 @@ custom_clis.json
 # Local artifacts
 .artifacts/
 venv_test/
+.env

@@ -17,10 +17,25 @@ logger = get_logger(__name__)
 @dataclass
 class CLIInfo:
     """CLI 정보"""
+
     name: str
     command: str
     version: Optional[str]
     installed: bool
+    authenticated: Optional[bool] = None  # None: 미확인, True: 인증됨, False: 인증필요
+
+
+# 인증 실패 키워드
+AUTH_FAILURE_KEYWORDS = [
+    "login",
+    "authenticate",
+    "unauthorized",
+    "401",
+    "sign in",
+    "api key",
+    "token",
+    "credential",
+]
 
 
 def is_cli_installed(command: str) -> bool:
@@ -56,6 +71,7 @@ def get_cli_version(command: str) -> Optional[str]:
             capture_output=True,
             text=True,
             timeout=5,
+            stdin=subprocess.DEVNULL,  # 인터랙티브 블로킹 방지
         )
 
         if result.returncode == 0:
@@ -78,7 +94,53 @@ def get_cli_version(command: str) -> Optional[str]:
         return None
 
 
-def list_available_clis() -> list[CLIInfo]:
+def check_cli_auth(command: str) -> Optional[bool]:
+    """
+    CLI 인증 상태 확인 (간단한 프롬프트로 테스트)
+
+    Args:
+        command: CLI 명령어
+
+    Returns:
+        True: 인증됨, False: 인증 필요, None: 확인 불가
+    """
+    if not is_cli_installed(command):
+        return None
+
+    try:
+        # 아주 짧은 프롬프트로 인증 상태 확인 (2초 타임아웃)
+        result = subprocess.run(
+            [command, "-p", "hi"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            stdin=subprocess.DEVNULL,
+        )
+
+        output = (result.stdout + result.stderr).lower()
+
+        # 인증 실패 키워드 확인
+        for keyword in AUTH_FAILURE_KEYWORDS:
+            if keyword in output:
+                logger.debug(f"{command} 인증 필요: '{keyword}' 감지")
+                return False
+
+        # 정상 응답이면 인증됨
+        if result.returncode == 0:
+            return True
+
+        # 비정상 종료지만 인증 키워드 없음 → 확인 불가
+        return None
+
+    except subprocess.TimeoutExpired:
+        logger.warning(f"{command} 인증 체크 타임아웃")
+        return None
+    except Exception as e:
+        logger.debug(f"{command} 인증 체크 실패: {e}")
+        return None
+
+
+def list_available_clis(check_auth: bool = False) -> list[CLIInfo]:
     """
     설치된 CLI 목록 반환
 
@@ -89,6 +151,9 @@ def list_available_clis() -> list[CLIInfo]:
     1. 기본 CLI (config.py)
     2. 파일 기반 (custom_clis.json)
     3. 런타임 추가 (add_cli 도구)
+
+    Args:
+        check_auth: True면 각 CLI의 인증 상태도 확인 (시간 소요)
 
     Returns:
         CLIInfo 객체들의 리스트
@@ -103,11 +168,17 @@ def list_available_clis() -> list[CLIInfo]:
         installed = is_cli_installed(command)
         version = get_cli_version(command) if installed else None
 
+        # 인증 상태 확인 (옵션)
+        authenticated = None
+        if check_auth and installed:
+            authenticated = check_cli_auth(command)
+
         cli_info = CLIInfo(
             name=cli_name,
             command=command,
             version=version,
             installed=installed,
+            authenticated=authenticated,
         )
         clis.append(cli_info)
 

@@ -1,9 +1,10 @@
 """
 Global Configurations
 """
+
 import os
 from pathlib import Path
-from typing import TypedDict, Optional, Literal, List
+from typing import TypedDict, Literal
 
 
 # --- Task Manager Configuration ---
@@ -16,11 +17,9 @@ STORAGE_TYPE: Literal["memory", "sqlite"] = os.environ.get("MCP_STORAGE_TYPE", "
 SQLITE_DB_PATH = Path(__file__).parent.parent.parent / ".data" / "tasks.db"
 
 
-
-
-
 class CLIConfig(TypedDict):
     """CLI 설정 타입"""
+
     command: str
     timeout: int
     extra_args: list[str]

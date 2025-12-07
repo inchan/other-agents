@@ -1,29 +1,32 @@
 """
 Tests for SqliteStorage
 """
+
 import pytest
 import sqlite3
 from pathlib import Path
 
 from other_agents_mcp.sqlite_storage import SqliteStorage
-from other_agents_mcp.task_manager import Task
+
 
 @pytest.fixture
 def db_path(tmp_path: Path) -> Path:
     """테스트용 임시 데이터베이스 경로를 제공합니다."""
     return tmp_path / "test_tasks.db"
 
+
 @pytest.fixture
 def storage(db_path: Path) -> SqliteStorage:
     """테스트용 SqliteStorage 인스턴스를 생성합니다."""
     return SqliteStorage(db_path=db_path)
+
 
 @pytest.mark.asyncio
 async def test_initialization_creates_table(db_path: Path):
     """__init__이 호출될 때 'tasks' 테이블이 생성되는지 확인합니다."""
     # 연결을 닫기 위해 storage 인스턴스를 생성하고 즉시 소멸시킵니다.
     _ = SqliteStorage(db_path=db_path)
-    
+
     # 데이터베이스에 직접 연결하여 테이블 존재 여부 확인
     with sqlite3.connect(db_path) as conn:
         cursor = conn.cursor()
@@ -31,6 +34,7 @@ async def test_initialization_creates_table(db_path: Path):
         result = cursor.fetchone()
         assert result is not None, "tasks 테이블이 생성되지 않았습니다."
         assert result[0] == "tasks"
+
 
 @pytest.mark.asyncio
 async def test_create_and_get_task(storage: SqliteStorage):
@@ -47,18 +51,20 @@ async def test_create_and_get_task(storage: SqliteStorage):
     assert retrieved_task.status == "running"
     assert retrieved_task.created_at is not None
 
+
 @pytest.mark.asyncio
 async def test_get_nonexistent_task(storage: SqliteStorage):
     """존재하지 않는 작업을 조회할 때 None이 반환되는지 확인합니다."""
     retrieved_task = await storage.get_task("non-existent-id")
     assert retrieved_task is None
 
+
 @pytest.mark.asyncio
 async def test_update_task(storage: SqliteStorage):
     """작업 상태를 업데이트하고 올바르게 반영되는지 확인합니다."""
     task_id = "test-task-2"
     await storage.create_task(task_id)
-    
+
     # 업데이트할 Task 객체 가져오기
     task = await storage.get_task(task_id)
     assert task is not None
@@ -75,6 +81,7 @@ async def test_update_task(storage: SqliteStorage):
     assert updated_task.result == {"output": "some result"}
     assert updated_task.error is None
 
+
 @pytest.mark.asyncio
 async def test_get_all_tasks(storage: SqliteStorage):
     """여러 작업을 생성하고 모두 조회되는지 확인합니다."""
@@ -84,9 +91,10 @@ async def test_get_all_tasks(storage: SqliteStorage):
 
     all_tasks = await storage.get_all_tasks()
     assert len(all_tasks) == len(task_ids)
-    
+
     retrieved_ids = {t.task_id for t in all_tasks}
     assert retrieved_ids == set(task_ids)
+
 
 @pytest.mark.asyncio
 async def test_recover_tasks(db_path: Path):
@@ -95,7 +103,7 @@ async def test_recover_tasks(db_path: Path):
     storage1 = SqliteStorage(db_path=db_path)
     await storage1.create_task("running-task-1")
     await storage1.create_task("running-task-2")
-    
+
     # 2. 완료된 작업도 하나 생성합니다. 이 작업은 변경되지 않아야 합니다.
     completed_task = await storage1.create_task("completed-task")
     completed_task.status = "completed"
@@ -115,7 +123,7 @@ async def test_recover_tasks(db_path: Path):
     task2 = await storage2.get_task("running-task-2")
     assert task2 is not None
     assert task2.status == "failed"
-    
+
     task3 = await storage2.get_task("completed-task")
     assert task3 is not None
     assert task3.status == "completed"

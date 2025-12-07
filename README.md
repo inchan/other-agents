@@ -1,6 +1,10 @@
 # Other Agents MCP Server
 
-> **Version 2.1** - Session Mode Support
+[![PyPI version](https://badge.fury.io/py/other-agents-mcp.svg)](https://badge.fury.io/py/other-agents-mcp)
+[![CI](https://github.com/inchan/other-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/inchan/other-agents/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+> **Version 0.0.1** - Production Ready
 
 MCP (Model Context Protocol) 서버로 로컬에 설치된 AI CLI 도구들과 **파일 기반**으로 통신합니다.
 
@@ -62,25 +66,58 @@ Claude Code에서 자연어로 다른 AI에게 작업을 요청할 수 있습니
 
 ## 🚀 Installation
 
-### Prerequisites
-- Python 3.10 or higher
-- Node.js (for MCP Inspector)
-
-### Setup
+### Option 1: PyPI (권장)
 
 ```bash
-# 1. Python 3.12 설치 (권장)
-brew install python@3.12
+# uvx로 바로 실행 (설치 불필요)
+uvx other-agents-mcp
+
+# 또는 pip으로 설치
+pip install other-agents-mcp
+```
+
+### Option 2: Smithery
+
+```bash
+# Smithery CLI로 설치
+npx @smithery/cli install other-agents-mcp --client claude
+```
+
+### Option 3: Docker
+
+```bash
+docker pull inchan/other-agents-mcp:latest
+docker run -it inchan/other-agents-mcp
+```
+
+### Option 4: 소스에서 설치 (개발용)
+
+```bash
+# 1. 저장소 클론
+git clone https://github.com/inchan/other-agents.git
+cd other-agents
 
 # 2. 가상 환경 생성
 python3.12 -m venv venv
 source venv/bin/activate
 
 # 3. 패키지 설치 (개발 모드)
-pip install -e .
-
-# 4. 개발 의존성 설치 (선택)
 pip install -e ".[dev]"
+```
+
+### Claude Desktop 설정
+
+`~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "other-agents": {
+      "command": "uvx",
+      "args": ["other-agents-mcp"]
+    }
+  }
+}
 ```
 
 ### Verify Installation

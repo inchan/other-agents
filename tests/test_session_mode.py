@@ -39,6 +39,7 @@ class TestSessionManager:
 
         # UUID가 아닌 경우 새로 생성
         import uuid
+
         try:
             uuid.UUID(session_info.cli_session_id)
             # UUID 형식이면 통과
@@ -131,7 +132,7 @@ class TestSessionManager:
 
     def test_max_sessions_limit(self):
         """최대 세션 수 제한 테스트"""
-        manager = SessionManager()
+        SessionManager()
 
         # MAX_SESSIONS는 1000이지만 테스트는 작은 수로
         from other_agents_mcp.session_manager import MAX_SESSIONS
@@ -149,10 +150,7 @@ class TestSessionArgs:
         from other_agents_mcp.file_handler import _build_session_args
 
         args = _build_session_args(
-            cli_name="claude",
-            cli_session_id="test-uuid-123",
-            resume=False,
-            is_first_request=True
+            cli_name="claude", cli_session_id="test-uuid-123", resume=False, is_first_request=True
         )
 
         assert "--session-id" in args
@@ -163,10 +161,7 @@ class TestSessionArgs:
         from other_agents_mcp.file_handler import _build_session_args
 
         args = _build_session_args(
-            cli_name="claude",
-            cli_session_id="test-uuid-123",
-            resume=True,
-            is_first_request=False
+            cli_name="claude", cli_session_id="test-uuid-123", resume=True, is_first_request=False
         )
 
         assert "--resume" in args
@@ -177,10 +172,7 @@ class TestSessionArgs:
         from other_agents_mcp.file_handler import _build_session_args
 
         args = _build_session_args(
-            cli_name="gemini",
-            cli_session_id="latest",
-            resume=False,
-            is_first_request=True
+            cli_name="gemini", cli_session_id="latest", resume=False, is_first_request=True
         )
 
         assert len(args) == 0
@@ -190,10 +182,7 @@ class TestSessionArgs:
         from other_agents_mcp.file_handler import _build_session_args
 
         args = _build_session_args(
-            cli_name="gemini",
-            cli_session_id="latest",
-            resume=True,
-            is_first_request=False
+            cli_name="gemini", cli_session_id="latest", resume=True, is_first_request=False
         )
 
         assert "--resume" in args
@@ -210,19 +199,17 @@ class TestSessionModeIntegration:
 
         # session_id 없음 → Stateless 모드
         # (실제 CLI 호출은 안 하고 에러 확인만)
-        result_stateless = await call_tool("send_message", {
-            "cli_name": "nonexistent",
-            "message": "test"
-        })
+        result_stateless = await call_tool(
+            "send_message", {"cli_name": "nonexistent", "message": "test"}
+        )
         # Stateless 모드로 실행되었음을 확인 (에러 발생)
         assert "error" in result_stateless
 
         # session_id 있음 → Session 모드
-        result_session = await call_tool("send_message", {
-            "cli_name": "nonexistent",
-            "message": "test",
-            "session_id": "test-session-001"
-        })
+        result_session = await call_tool(
+            "send_message",
+            {"cli_name": "nonexistent", "message": "test", "session_id": "test-session-001"},
+        )
         # Session 모드로 실행되었음을 확인 (에러 발생)
         assert "error" in result_session
 
@@ -231,11 +218,10 @@ class TestSessionModeIntegration:
         """resume=True인데 session_id 없으면 무시"""
         from other_agents_mcp.server import call_tool
 
-        result = await call_tool("send_message", {
-            "cli_name": "nonexistent",
-            "message": "test",
-            "resume": True  # session_id 없음
-        })
+        result = await call_tool(
+            "send_message",
+            {"cli_name": "nonexistent", "message": "test", "resume": True},  # session_id 없음
+        )
 
         # Stateless 모드로 처리되어야 함
         assert "error" in result

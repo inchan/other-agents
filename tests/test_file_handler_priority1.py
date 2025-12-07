@@ -7,12 +7,10 @@ import os
 import tempfile
 import pytest
 from unittest.mock import patch, MagicMock
-import yaml
 
 from other_agents_mcp.file_handler import (
     execute_cli_file_based,
     CLINotFoundError,
-    CLITimeoutError,
     CLIExecutionError,
 )
 
@@ -25,11 +23,7 @@ class TestExecuteCliFileBasedIntegration:
         with patch("other_agents_mcp.file_handler.is_cli_installed", return_value=True):
             with patch("other_agents_mcp.file_handler.subprocess.run") as mock_run:
                 # subprocess.run 모킹
-                mock_run.return_value = MagicMock(
-                    returncode=0,
-                    stdout="Success",
-                    stderr=""
-                )
+                mock_run.return_value = MagicMock(returncode=0, stdout="Success", stderr="")
 
                 # 임시 파일에 쓰려면 output 파일이 필요
                 with tempfile.TemporaryDirectory() as tmpdir:
@@ -39,11 +33,11 @@ class TestExecuteCliFileBasedIntegration:
                         # input 파일 생성
                         input_fd = 10
                         input_path = os.path.join(tmpdir, "input.txt")
-                        with open(input_path, 'w') as f:
+                        with open(input_path, "w") as f:
                             f.write("test message")
 
                         # output 파일 생성
-                        with open(output_path, 'w') as f:
+                        with open(output_path, "w") as f:
                             f.write("test response")
 
                         output_fd = 11
@@ -58,8 +52,7 @@ class TestExecuteCliFileBasedIntegration:
                                 with patch("builtins.open", create=True):
                                     # execute_cli_file_based 호출
                                     result = execute_cli_file_based(
-                                        cli_name="claude",
-                                        message="test message"
+                                        cli_name="claude", message="test message"
                                     )
 
                                     # 결과 검증
@@ -80,9 +73,9 @@ class TestExecuteCliFileBasedIntegration:
                         output_path = os.path.join(tmpdir, "output.txt")
 
                         # 실제 파일 생성
-                        with open(input_path, 'w') as f:
+                        with open(input_path, "w") as f:
                             pass
-                        with open(output_path, 'w') as f:
+                        with open(output_path, "w") as f:
                             f.write("test output")
 
                         input_fd = 10
@@ -98,25 +91,31 @@ class TestExecuteCliFileBasedIntegration:
 
                         def mock_fdopen(fd, mode):
                             nonlocal written_content
+
                             class MockFile:
                                 def write(self, content):
                                     nonlocal written_content
                                     written_content = content
+
                                 def __enter__(self):
                                     return self
+
                                 def __exit__(self, *args):
                                     pass
 
                             return MockFile()
 
-                        with patch("other_agents_mcp.file_handler.os.fdopen", side_effect=mock_fdopen):
+                        with patch(
+                            "other_agents_mcp.file_handler.os.fdopen", side_effect=mock_fdopen
+                        ):
                             with patch("other_agents_mcp.file_handler.os.close"):
                                 with patch("builtins.open", create=True) as mock_open:
-                                    mock_open.return_value.__enter__.return_value.read.return_value = "output"
+                                    mock_open.return_value.__enter__.return_value.read.return_value = (
+                                        "output"
+                                    )
 
-                                    result = execute_cli_file_based(
-                                        cli_name="claude",
-                                        message="test message"
+                                    execute_cli_file_based(
+                                        cli_name="claude", message="test message"
                                     )
 
                                     # 메시지가 기록되었는지 확인
@@ -142,13 +141,15 @@ class TestSystemPromptHandling:
                     with patch("other_agents_mcp.file_handler.os.fdopen"):
                         with patch("other_agents_mcp.file_handler.os.close"):
                             with patch("builtins.open", create=True) as mock_open:
-                                mock_open.return_value.__enter__.return_value.read.return_value = "output"
+                                mock_open.return_value.__enter__.return_value.read.return_value = (
+                                    "output"
+                                )
 
                                 # system_prompt 포함해서 호출
-                                result = execute_cli_file_based(
+                                execute_cli_file_based(
                                     cli_name="claude",
                                     message="user message",
-                                    system_prompt="system instruction"
+                                    system_prompt="system instruction",
                                 )
 
                                 # _execute_cli에 system_prompt 전달 확인
@@ -162,10 +163,7 @@ class TestErrorHandling:
     def test_cli_not_found_unknown_cli(self):
         """알 수 없는 CLI"""
         with pytest.raises(CLINotFoundError, match="알 수 없는 CLI"):
-            execute_cli_file_based(
-                cli_name="unknown_cli_xyz",
-                message="test"
-            )
+            execute_cli_file_based(cli_name="unknown_cli_xyz", message="test")
 
     def test_cli_not_installed(self):
         """CLI가 설치되지 않음"""
@@ -183,23 +181,18 @@ class TestErrorHandling:
 
             with patch("other_agents_mcp.file_handler.is_cli_installed", return_value=False):
                 with pytest.raises(CLINotFoundError, match="설치되지 않았습니다"):
-                    execute_cli_file_based(
-                        cli_name="claude",
-                        message="test"
-                    )
-
+                    execute_cli_file_based(cli_name="claude", message="test")
 
     def test_execution_error_with_returncode(self):
         """실행 에러 (returncode != 0)"""
         with patch("other_agents_mcp.file_handler.is_cli_installed", return_value=True):
             with patch("other_agents_mcp.file_handler._execute_cli") as mock_execute:
-                mock_execute.side_effect = CLIExecutionError("CLI 실행 실패 (코드 1): error message")
+                mock_execute.side_effect = CLIExecutionError(
+                    "CLI 실행 실패 (코드 1): error message"
+                )
 
                 with pytest.raises(CLIExecutionError):
-                    execute_cli_file_based(
-                        cli_name="claude",
-                        message="test"
-                    )
+                    execute_cli_file_based(cli_name="claude", message="test")
 
 
 class TestSkipGitCheckFlag:
@@ -220,12 +213,12 @@ class TestSkipGitCheckFlag:
                     with patch("other_agents_mcp.file_handler.os.fdopen"):
                         with patch("other_agents_mcp.file_handler.os.close"):
                             with patch("builtins.open", create=True) as mock_open:
-                                mock_open.return_value.__enter__.return_value.read.return_value = "output"
+                                mock_open.return_value.__enter__.return_value.read.return_value = (
+                                    "output"
+                                )
 
-                                result = execute_cli_file_based(
-                                    cli_name="codex",
-                                    message="test",
-                                    skip_git_repo_check=True
+                                execute_cli_file_based(
+                                    cli_name="codex", message="test", skip_git_repo_check=True
                                 )
 
                                 # skip_git_repo_check=True가 _execute_cli에 전달됨
@@ -251,12 +244,11 @@ class TestEnvironmentVariables:
                     with patch("other_agents_mcp.file_handler.os.fdopen"):
                         with patch("other_agents_mcp.file_handler.os.close"):
                             with patch("builtins.open", create=True) as mock_open:
-                                mock_open.return_value.__enter__.return_value.read.return_value = "output"
-
-                                result = execute_cli_file_based(
-                                    cli_name="qwen",
-                                    message="test"
+                                mock_open.return_value.__enter__.return_value.read.return_value = (
+                                    "output"
                                 )
+
+                                execute_cli_file_based(cli_name="qwen", message="test")
 
                                 # _execute_cli 호출 검증
                                 mock_execute.assert_called_once()
@@ -283,12 +275,11 @@ class TestTempFileCleanup:
                     with patch("other_agents_mcp.file_handler.os.fdopen"):
                         with patch("other_agents_mcp.file_handler.os.close"):
                             with patch("builtins.open", create=True) as mock_open:
-                                mock_open.return_value.__enter__.return_value.read.return_value = "output"
-
-                                result = execute_cli_file_based(
-                                    cli_name="claude",
-                                    message="test"
+                                mock_open.return_value.__enter__.return_value.read.return_value = (
+                                    "output"
                                 )
+
+                                execute_cli_file_based(cli_name="claude", message="test")
 
                                 # mkstemp 호출 확인 (최소 2번: input, output)
                                 assert mock_mkstemp.call_count >= 2
@@ -309,12 +300,11 @@ class TestTempFileCleanup:
                         with patch("other_agents_mcp.file_handler.os.fdopen"):
                             with patch("other_agents_mcp.file_handler.os.close"):
                                 with patch("builtins.open", create=True) as mock_open:
-                                    mock_open.return_value.__enter__.return_value.read.return_value = "output"
-
-                                    result = execute_cli_file_based(
-                                        cli_name="claude",
-                                        message="test"
+                                    mock_open.return_value.__enter__.return_value.read.return_value = (
+                                        "output"
                                     )
+
+                                    execute_cli_file_based(cli_name="claude", message="test")
 
                                     # 정리 함수 호출 확인
                                     mock_cleanup.assert_called_once()
@@ -335,10 +325,7 @@ class TestTempFileCleanup:
                         with patch("other_agents_mcp.file_handler.os.fdopen"):
                             with patch("other_agents_mcp.file_handler.os.close"):
                                 try:
-                                    result = execute_cli_file_based(
-                                        cli_name="claude",
-                                        message="test"
-                                    )
+                                    execute_cli_file_based(cli_name="claude", message="test")
                                 except CLIExecutionError:
                                     pass
 

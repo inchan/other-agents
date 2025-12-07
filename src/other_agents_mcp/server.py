@@ -4,7 +4,6 @@ Other Agents MCP 서버 진입점
 """
 
 import asyncio
-import sys
 import functools
 from dataclasses import asdict
 from typing import Any, Dict, AsyncGenerator
@@ -18,12 +17,14 @@ from .cli_registry import get_cli_registry
 from .file_handler import (
     execute_cli_file_based,
     execute_with_session,
+    cleanup_stale_temp_files,
+    get_cli_semaphore,
     CLINotFoundError,
     CLIExecutionError,
-    CLITimeoutError
+    CLITimeoutError,
 )
 from .logger import get_logger
-from .task_manager import get_task_manager, TaskManager
+from .task_manager import get_task_manager
 
 logger = get_logger(__name__)
 
@@ -38,12 +39,12 @@ async def lifespan(app: Server) -> AsyncGenerator[Dict[str, Any], None]:
     logger.info("서버 시작... TaskManager를 초기화하고 시작합니다.")
     task_manager = get_task_manager()
     await task_manager.start()
-    
+
     yield {}
-    
+
     logger.info("서버 종료... TaskManager를 중지합니다.")
     await task_manager.stop()
-    
+
 
 @app.list_tools()
 async def list_available_tools():
@@ -56,8 +57,13 @@ async def list_available_tools():
             description="사용 가능한 AI CLI 목록 조회. 기본 제공: claude, gemini, codex (Cursor), qwen. 각 CLI의 설치 여부와 버전 정보를 확인할 수 있습니다.",
             inputSchema={
                 "type": "object",
-                "properties": {}
-            }
+                "properties": {
+                    "check_auth": {
+                        "type": "boolean",
+                        "description": "인증 상태 확인 여부 (기본값: false). true면 각 CLI에 짧은 프롬프트를 보내 인증 상태를 확인합니다.",
+                    },
+                },
+            },
         ),
         Tool(
             name="use_agent",
@@ -67,44 +73,41 @@ async def list_available_tools():
                 "properties": {
                     "cli_name": {
                         "type": "string",
-                        "description": "실행할 AI CLI 이름. 가능한 값: 'claude', 'gemini', 'codex', 'qwen' 또는 add_agent로 추가한 커스텀 CLI"
+                        "description": "실행할 AI CLI 이름. 가능한 값: 'claude', 'gemini', 'codex', 'qwen' 또는 add_agent로 추가한 커스텀 CLI",
                     },
-                    "message": {
-                        "type": "string",
-                        "description": "전송할 프롬프트"
-                    },
+                    "message": {"type": "string", "description": "전송할 프롬프트"},
                     "run_async": {
                         "type": "boolean",
-                        "description": "비동기 실행 여부. true면 즉시 task_id 반환 (기본값: false)"
+                        "description": "비동기 실행 여부. true면 즉시 task_id 반환 (기본값: false)",
                     },
                     "session_id": {
                         "type": "string",
-                        "description": "세션 ID (선택사항). 제공하면 session 모드, 없으면 stateless 모드"
+                        "description": "세션 ID (선택사항). 제공하면 session 모드, 없으면 stateless 모드",
                     },
                     "resume": {
                         "type": "boolean",
-                        "description": "세션 이어가기 (session_id와 함께 사용, 기본값: false)"
+                        "description": "세션 이어가기 (session_id와 함께 사용, 기본값: false)",
                     },
                     "system_prompt": {
                         "type": "string",
-                        "description": "시스템 프롬프트 (선택사항). Claude는 --append-system-prompt, 나머지는 YAML 형식으로 처리됨"
+                        "description": "시스템 프롬프트 (선택사항). Claude는 --append-system-prompt, 나머지는 YAML 형식으로 처리됨",
                     },
                     "skip_git_repo_check": {
                         "type": "boolean",
-                        "description": "Git 저장소 체크 건너뛰기 (Codex만 지원, 기본값: true)"
+                        "description": "Git 저장소 체크 건너뛰기 (Codex만 지원, 기본값: true)",
                     },
                     "args": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "추가 CLI 인자 (선택사항). 각 CLI가 지원하는 옵션만 전달되며, 지원하지 않는 옵션은 로그에 기록되고 무시됨"
+                        "description": "추가 CLI 인자 (선택사항). 각 CLI가 지원하는 옵션만 전달되며, 지원하지 않는 옵션은 로그에 기록되고 무시됨",
                     },
                     "timeout": {
                         "type": "number",
-                        "description": "타임아웃 초 (선택사항, 기본값: 300). Stateless/Session 모드 모두 지원"
-                    }
+                        "description": "타임아웃 초 (선택사항, 기본값: 300). Stateless/Session 모드 모두 지원",
+                    },
                 },
-                "required": ["cli_name", "message"]
-            }
+                "required": ["cli_name", "message"],
+            },
         ),
         Tool(
             name="use_agents",
@@ -114,28 +117,28 @@ async def list_available_tools():
                 "properties": {
                     "message": {
                         "type": "string",
-                        "description": "모든 AI CLI에 전송할 프롬프트 또는 질문"
+                        "description": "모든 AI CLI에 전송할 프롬프트 또는 질문",
                     },
                     "cli_names": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "응답을 받을 AI CLI 목록 (선택사항). 예: ['claude', 'codex', 'gemini']. 생략 시 모든 사용 가능한 CLI에게 전송"
+                        "description": "응답을 받을 AI CLI 목록 (선택사항). 예: ['claude', 'codex', 'gemini']. 생략 시 모든 사용 가능한 CLI에게 전송",
                     },
                     "system_prompt": {
                         "type": "string",
-                        "description": "시스템 프롬프트 (선택사항)"
+                        "description": "시스템 프롬프트 (선택사항)",
                     },
                     "skip_git_repo_check": {
                         "type": "boolean",
-                        "description": "Git 저장소 체크 건너뛰기 (기본값: true)"
+                        "description": "Git 저장소 체크 건너뛰기 (기본값: true)",
                     },
                     "timeout": {
                         "type": "number",
-                        "description": "각 CLI의 타임아웃 초 (선택사항, 기본값: 300)"
-                    }
+                        "description": "각 CLI의 타임아웃 초 (선택사항, 기본값: 300)",
+                    },
                 },
-                "required": ["message"]
-            }
+                "required": ["message"],
+            },
         ),
         Tool(
             name="get_task_status",
@@ -143,13 +146,10 @@ async def list_available_tools():
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "task_id": {
-                        "type": "string",
-                        "description": "use_agent로부터 받은 작업 ID"
-                    }
+                    "task_id": {"type": "string", "description": "use_agent로부터 받은 작업 ID"}
                 },
-                "required": ["task_id"]
-            }
+                "required": ["task_id"],
+            },
         ),
         Tool(
             name="add_agent",
@@ -157,45 +157,36 @@ async def list_available_tools():
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "CLI 이름 (필수, 예: deepseek)"
-                    },
+                    "name": {"type": "string", "description": "CLI 이름 (필수, 예: deepseek)"},
                     "command": {
                         "type": "string",
-                        "description": "실행 명령어 (필수, 예: deepseek)"
+                        "description": "실행 명령어 (필수, 예: deepseek)",
                     },
                     "extra_args": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "추가 인자 (선택, 기본값: [])"
+                        "description": "추가 인자 (선택, 기본값: [])",
                     },
-                    "timeout": {
-                        "type": "number",
-                        "description": "타임아웃 초 (선택, 기본값: 300)"
-                    },
-                    "env_vars": {
-                        "type": "object",
-                        "description": "환경 변수 (선택, 기본값: {})"
-                    },
+                    "timeout": {"type": "number", "description": "타임아웃 초 (선택, 기본값: 300)"},
+                    "env_vars": {"type": "object", "description": "환경 변수 (선택, 기본값: {})"},
                     "supports_skip_git_check": {
                         "type": "boolean",
-                        "description": "Git 체크 스킵 지원 (선택, 기본값: false)"
+                        "description": "Git 체크 스킵 지원 (선택, 기본값: false)",
                     },
                     "skip_git_check_position": {
                         "type": "string",
                         "enum": ["before_extra_args", "after_extra_args"],
-                        "description": "플래그 위치 (선택, 기본값: before_extra_args)"
+                        "description": "플래그 위치 (선택, 기본값: before_extra_args)",
                     },
                     "supported_args": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "지원하는 CLI 인자 목록 (선택, 기본값: [])"
-                    }
+                        "description": "지원하는 CLI 인자 목록 (선택, 기본값: [])",
+                    },
                 },
-                "required": ["name", "command"]
-            }
-        )
+                "required": ["name", "command"],
+            },
+        ),
     ]
 
 
@@ -204,7 +195,8 @@ async def call_tool(name: str, arguments: Dict[str, Any]):
     """도구 실행 (비동기 처리 개선)"""
     if name == "list_agents":
         # 비동기로 실행하여 블로킹 방지
-        clis = await asyncio.to_thread(list_available_clis)
+        check_auth = arguments.get("check_auth", False)
+        clis = await asyncio.to_thread(list_available_clis, check_auth)
         return {"clis": [asdict(cli) for cli in clis]}
 
     elif name == "use_agent":
@@ -224,15 +216,26 @@ async def call_tool(name: str, arguments: Dict[str, Any]):
             logger.info(f"Session mode: {session_id} (resume: {resume})")
             execution_func = functools.partial(
                 execute_with_session,
-                cli_name, message, session_id, resume,
-                skip_git_repo_check, system_prompt, args, timeout
+                cli_name,
+                message,
+                session_id,
+                resume,
+                skip_git_repo_check,
+                system_prompt,
+                args,
+                timeout,
             )
         else:
             # Stateless 모드
             logger.info("Stateless mode")
             execution_func = functools.partial(
                 execute_cli_file_based,
-                cli_name, message, skip_git_repo_check, system_prompt, args, timeout
+                cli_name,
+                message,
+                skip_git_repo_check,
+                system_prompt,
+                args,
+                timeout,
             )
 
         # 비동기 실행 여부에 따른 분기
@@ -243,32 +246,34 @@ async def call_tool(name: str, arguments: Dict[str, Any]):
             return {
                 "task_id": task_id,
                 "status": "running",
-                "message": "Task started asynchronously"
+                "message": "Task started asynchronously",
             }
         else:
-            # 동기 실행: 완료될 때까지 대기
-            try:
-                response = await asyncio.to_thread(execution_func)
-                return {"response": response}
-            except ValueError as e:
-                logger.error(f"Session validation error: {e}")
-                return {"error": str(e), "type": "SessionValidationError"}
-            except CLINotFoundError as e:
-                logger.error(f"CLI not found: {e}")
-                return {"error": str(e), "type": "CLINotFoundError"}
-            except CLITimeoutError as e:
-                logger.error(f"CLI timeout: {e}")
-                return {"error": str(e), "type": "CLITimeoutError"}
-            except CLIExecutionError as e:
-                logger.error(f"CLI execution error: {e}")
-                return {"error": str(e), "type": "CLIExecutionError"}
+            # 동기 실행: 세마포어로 동시성 제어
+            semaphore = get_cli_semaphore()
+            async with semaphore:
+                try:
+                    response = await asyncio.to_thread(execution_func)
+                    return {"response": response}
+                except ValueError as e:
+                    logger.error(f"Session validation error: {e}")
+                    return {"error": str(e), "type": "SessionValidationError"}
+                except CLINotFoundError as e:
+                    logger.error(f"CLI not found: {e}")
+                    return {"error": str(e), "type": "CLINotFoundError"}
+                except CLITimeoutError as e:
+                    logger.error(f"CLI timeout: {e}")
+                    return {"error": str(e), "type": "CLITimeoutError"}
+                except CLIExecutionError as e:
+                    logger.error(f"CLI execution error: {e}")
+                    return {"error": str(e), "type": "CLIExecutionError"}
 
     elif name == "get_task_status":
         task_id = arguments["task_id"]
         task_manager = get_task_manager()
         status = await task_manager.get_task_status(task_id)
         return status
-        
+
     elif name == "add_agent":
         # 필수 필드
         cli_name = arguments["name"]
@@ -298,10 +303,7 @@ async def call_tool(name: str, arguments: Dict[str, Any]):
             return {
                 "success": True,
                 "message": f"CLI '{cli_name}' 추가 완료",
-                "cli": {
-                    "name": cli_name,
-                    "command": command
-                }
+                "cli": {"name": cli_name, "command": command},
             }
         except Exception as e:
             logger.error(f"CLI 추가 실패: {e}")
@@ -322,28 +324,48 @@ async def call_tool(name: str, arguments: Dict[str, Any]):
         else:
             logger.info(f"대상 CLI 목록(지정): {cli_names}")
 
-        # 병렬 실행 함수
+        # 병렬 실행 함수 (세마포어로 동시성 제어)
+        semaphore = get_cli_semaphore()
+
         async def run_single_cli(cli_name: str) -> tuple[str, dict]:
             """단일 CLI를 실행하고 결과 반환"""
-            try:
-                execution_func = functools.partial(
-                    execute_cli_file_based,
-                    cli_name, message, skip_git_repo_check, system_prompt, [], timeout
-                )
-                response = await asyncio.to_thread(execution_func)
-                return (cli_name, {"response": response, "success": True})
-            except CLINotFoundError as e:
-                logger.warning(f"CLI '{cli_name}' not found: {e}")
-                return (cli_name, {"error": str(e), "type": "CLINotFoundError", "success": False})
-            except CLITimeoutError as e:
-                logger.warning(f"CLI '{cli_name}' timeout: {e}")
-                return (cli_name, {"error": str(e), "type": "CLITimeoutError", "success": False})
-            except CLIExecutionError as e:
-                logger.warning(f"CLI '{cli_name}' execution error: {e}")
-                return (cli_name, {"error": str(e), "type": "CLIExecutionError", "success": False})
-            except Exception as e:
-                logger.error(f"CLI '{cli_name}' unexpected error: {e}")
-                return (cli_name, {"error": str(e), "type": "UnexpectedError", "success": False})
+            async with semaphore:
+                try:
+                    execution_func = functools.partial(
+                        execute_cli_file_based,
+                        cli_name,
+                        message,
+                        skip_git_repo_check,
+                        system_prompt,
+                        [],
+                        timeout,
+                    )
+                    response = await asyncio.to_thread(execution_func)
+                    return (cli_name, {"response": response, "success": True})
+                except CLINotFoundError as e:
+                    logger.warning(f"CLI '{cli_name}' not found: {e}")
+                    return (
+                        cli_name,
+                        {"error": str(e), "type": "CLINotFoundError", "success": False},
+                    )
+                except CLITimeoutError as e:
+                    logger.warning(f"CLI '{cli_name}' timeout: {e}")
+                    return (
+                        cli_name,
+                        {"error": str(e), "type": "CLITimeoutError", "success": False},
+                    )
+                except CLIExecutionError as e:
+                    logger.warning(f"CLI '{cli_name}' execution error: {e}")
+                    return (
+                        cli_name,
+                        {"error": str(e), "type": "CLIExecutionError", "success": False},
+                    )
+                except Exception as e:
+                    logger.error(f"CLI '{cli_name}' unexpected error: {e}")
+                    return (
+                        cli_name,
+                        {"error": str(e), "type": "UnexpectedError", "success": False},
+                    )
 
         # 모든 CLI를 병렬로 실행
         tasks = [run_single_cli(cli_name) for cli_name in cli_names]
@@ -352,10 +374,7 @@ async def call_tool(name: str, arguments: Dict[str, Any]):
         # 결과를 딕셔너리로 변환
         responses = {cli_name: result for cli_name, result in results}
 
-        return {
-            "prompt": message,
-            "responses": responses
-        }
+        return {"prompt": message, "responses": responses}
 
     else:
         logger.warning(f"Unknown tool: {name}")
@@ -369,16 +388,14 @@ def main():
     logger.info("Server name: other-agents-mcp")
     logger.info("Available tools: list_agents, use_agent, use_agents, get_task_status, add_agent")
 
+    # 시작 시 오래된 임시 파일 정리
+    cleanup_stale_temp_files()
+
     # stdio 서버 시작
-    from mcp.server.stdio import stdio_server
 
     async def run():
         async with stdio_server() as (read_stream, write_stream):
-            await app.run(
-                read_stream,
-                write_stream,
-                app.create_initialization_options()
-            )
+            await app.run(read_stream, write_stream, app.create_initialization_options())
 
     asyncio.run(run())
 

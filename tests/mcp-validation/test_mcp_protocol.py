@@ -13,7 +13,7 @@ class TestMCPServerInitialization:
     def test_server_instance_created(self):
         """서버 인스턴스가 생성되는지 확인"""
         assert app is not None
-        assert hasattr(app, 'name')
+        assert hasattr(app, "name")
 
     def test_server_name(self):
         """서버 이름이 올바른지 확인"""
@@ -42,9 +42,9 @@ class TestListToolsHandler:
 
         for tool in tools:
             # MCP 프로토콜 필수 필드
-            assert hasattr(tool, 'name')
-            assert hasattr(tool, 'description')
-            assert hasattr(tool, 'inputSchema')
+            assert hasattr(tool, "name")
+            assert hasattr(tool, "description")
+            assert hasattr(tool, "inputSchema")
 
             # 각 필드 타입 검증
             assert isinstance(tool.name, str)
@@ -77,7 +77,8 @@ class TestListToolsHandler:
         assert "AI CLI" in list_clis_tool.description
         assert "claude" in list_clis_tool.description or "gemini" in list_clis_tool.description
         assert list_clis_tool.inputSchema["type"] == "object"
-        assert list_clis_tool.inputSchema["properties"] == {}
+        # check_auth 파라미터가 있어야 함
+        assert "check_auth" in list_clis_tool.inputSchema["properties"]
 
     @pytest.mark.asyncio
     async def test_run_tool_tool_definition(self):
@@ -122,6 +123,7 @@ class TestCallToolHandler:
     async def test_call_tool_is_async(self):
         """call_tool이 async 함수인지 확인"""
         import inspect
+
         assert inspect.iscoroutinefunction(call_tool)
 
     @pytest.mark.asyncio
@@ -188,8 +190,9 @@ class TestMCPProtocolCompliance:
                 properties = schema.get("properties", {})
 
                 for field in required_fields:
-                    assert field in properties, \
-                        f"Required field '{field}' not found in properties of {tool.name}"
+                    assert (
+                        field in properties
+                    ), f"Required field '{field}' not found in properties of {tool.name}"
 
 
 class TestErrorResponseFormat:

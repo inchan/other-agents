@@ -6,12 +6,8 @@
 
 import pytest
 import asyncio
-from dataclasses import asdict
-from typing import Dict, Any
 
 from other_agents_mcp.server import call_tool, list_available_tools as list_tools
-from other_agents_mcp.cli_manager import list_available_clis, CLIInfo
-from other_agents_mcp.file_handler import CLINotFoundError, CLITimeoutError, CLIExecutionError
 
 
 class TestE2EBasicWorkflow:
@@ -53,10 +49,7 @@ class TestE2EBasicWorkflow:
         available_clis = clis_result["clis"]
 
         # Step 2: 설치된 CLI 찾기
-        installed_cli = next(
-            (cli for cli in available_clis if cli["installed"]),
-            None
-        )
+        installed_cli = next((cli for cli in available_clis if cli["installed"]), None)
 
         if installed_cli is None:
             pytest.skip("No CLI installed for E2E test")
@@ -78,10 +71,9 @@ class TestE2EErrorHandling:
     async def test_error_then_success_recovery(self):
         """시나리오: 에러 발생 → 정상 호출로 복구"""
         # Step 1: 존재하지 않는 CLI 호출 (에러 예상)
-        error_result = await call_tool("use_agent", {
-            "cli_name": "nonexistent-cli-12345",
-            "message": "test"
-        })
+        error_result = await call_tool(
+            "use_agent", {"cli_name": "nonexistent-cli-12345", "message": "test"}
+        )
 
         assert "error" in error_result
         assert error_result["type"] == "CLINotFoundError"
@@ -107,10 +99,13 @@ class TestE2EErrorHandling:
         """시나리오: 필수 파라미터 누락"""
         # message 파라미터 누락
         with pytest.raises(KeyError):
-            await call_tool("use_agent", {
-                "cli_name": "claude"
-                # message 누락
-            })
+            await call_tool(
+                "use_agent",
+                {
+                    "cli_name": "claude"
+                    # message 누락
+                },
+            )
 
 
 class TestE2EDataConsistency:
@@ -130,10 +125,7 @@ class TestE2EDataConsistency:
         assert len(set(cli_counts)) == 1  # 모두 동일
 
         # CLI 이름도 동일
-        cli_names_sets = [
-            {cli["name"] for cli in r["clis"]}
-            for r in results
-        ]
+        cli_names_sets = [{cli["name"] for cli in r["clis"]} for r in results]
         assert all(names == cli_names_sets[0] for names in cli_names_sets)
 
     @pytest.mark.asyncio
@@ -144,7 +136,7 @@ class TestE2EDataConsistency:
 
         # 모든 CLI가 동일한 구조를 가져야 함
         for cli in clis:
-            required_keys = {"name", "command", "version", "installed"}
+            required_keys = {"name", "command", "version", "installed", "authenticated"}
             assert set(cli.keys()) == required_keys
 
             # 타입 검증
@@ -187,10 +179,7 @@ class TestE2EErrorMessages:
     @pytest.mark.asyncio
     async def test_cli_not_found_error_message_quality(self):
         """시나리오: CLI 미설치 에러 메시지 품질"""
-        result = await call_tool("use_agent", {
-            "cli_name": "fake-cli-xyz",
-            "message": "test"
-        })
+        result = await call_tool("use_agent", {"cli_name": "fake-cli-xyz", "message": "test"})
 
         assert "error" in result
         assert result["type"] == "CLINotFoundError"
@@ -219,10 +208,7 @@ class TestE2EStateManagement:
         # 각 호출이 독립적이어야 함
 
         # Call 1: Error
-        await call_tool("use_agent", {
-            "cli_name": "nonexistent",
-            "message": "test"
-        })
+        await call_tool("use_agent", {"cli_name": "nonexistent", "message": "test"})
 
         # Call 2: Success - 이전 에러의 영향을 받지 않아야 함
         result2 = await call_tool("list_agents", {})
@@ -246,10 +232,7 @@ class TestE2EStateManagement:
         results = []
 
         results.append(await call_tool("list_agents", {}))
-        results.append(await call_tool("use_agent", {
-            "cli_name": "fake",
-            "message": "test"
-        }))
+        results.append(await call_tool("use_agent", {"cli_name": "fake", "message": "test"}))
         results.append(await call_tool("list_agents", {}))
 
         # 첫 번째와 세 번째 호출 결과가 동일해야 함
@@ -280,10 +263,7 @@ class TestE2EPerformance:
         import time
 
         start = time.time()
-        await call_tool("use_agent", {
-            "cli_name": "nonexistent",
-            "message": "test"
-        })
+        await call_tool("use_agent", {"cli_name": "nonexistent", "message": "test"})
         elapsed = time.time() - start
 
         # 0.5초 이내 에러 응답
@@ -297,10 +277,7 @@ class TestE2EPerformance:
         start = time.time()
 
         # 5개 동시 호출
-        tasks = [
-            call_tool("list_agents", {})
-            for _ in range(5)
-        ]
+        tasks = [call_tool("list_agents", {}) for _ in range(5)]
         results = await asyncio.gather(*tasks)
 
         elapsed = time.time() - start
@@ -328,10 +305,9 @@ class TestE2EIntegration:
         assert "clis" in clis_result
 
         # 3. 존재하지 않는 CLI로 테스트 (에러 예상)
-        error_result = await call_tool("use_agent", {
-            "cli_name": "test-fake-cli",
-            "message": "test"
-        })
+        error_result = await call_tool(
+            "use_agent", {"cli_name": "test-fake-cli", "message": "test"}
+        )
         assert "error" in error_result
         assert error_result["type"] == "CLINotFoundError"
 
@@ -348,10 +324,7 @@ class TestE2EIntegration:
         assert "error" in r1
 
         # CLI not found
-        r2 = await call_tool("use_agent", {
-            "cli_name": "fake",
-            "message": "test"
-        })
+        r2 = await call_tool("use_agent", {"cli_name": "fake", "message": "test"})
         assert "error" in r2
         assert r2["type"] == "CLINotFoundError"
 
@@ -371,10 +344,7 @@ class TestE2EAddCLI:
     async def test_add_cli_minimal(self):
         """시나리오: 최소 필드로 CLI 추가"""
         # CLI 추가
-        result = await call_tool("add_agent", {
-            "name": "testcli",
-            "command": "testcli-cmd"
-        })
+        result = await call_tool("add_agent", {"name": "testcli", "command": "testcli-cmd"})
 
         assert result["success"] is True
         assert "testcli" in result["message"]
@@ -387,15 +357,18 @@ class TestE2EAddCLI:
     @pytest.mark.asyncio
     async def test_add_cli_full_options(self):
         """시나리오: 전체 옵션으로 CLI 추가"""
-        result = await call_tool("add_agent", {
-            "name": "fullcli",
-            "command": "fullcli-cmd",
-            "extra_args": ["arg1", "arg2"],
-            "timeout": 120,
-            "env_vars": {"KEY": "value"},
-            "supports_skip_git_check": True,
-            "skip_git_check_position": "after_extra_args"
-        })
+        result = await call_tool(
+            "add_agent",
+            {
+                "name": "fullcli",
+                "command": "fullcli-cmd",
+                "extra_args": ["arg1", "arg2"],
+                "timeout": 120,
+                "env_vars": {"KEY": "value"},
+                "supports_skip_git_check": True,
+                "skip_git_check_position": "after_extra_args",
+            },
+        )
 
         assert result["success"] is True
 
@@ -408,10 +381,7 @@ class TestE2EAddCLI:
     async def test_add_cli_then_use(self):
         """시나리오: CLI 추가 후 run_tool로 사용 시도"""
         # 1. CLI 추가
-        await call_tool("add_agent", {
-            "name": "fakecli",
-            "command": "fakecli-nonexistent"
-        })
+        await call_tool("add_agent", {"name": "fakecli", "command": "fakecli-nonexistent"})
 
         # 2. 추가된 CLI 확인
         list_result = await call_tool("list_agents", {})
@@ -419,10 +389,7 @@ class TestE2EAddCLI:
         assert "fakecli" in cli_names
 
         # 3. run_tool로 사용 시도 (실제로는 미설치되어 에러)
-        send_result = await call_tool("use_agent", {
-            "cli_name": "fakecli",
-            "message": "test"
-        })
+        send_result = await call_tool("use_agent", {"cli_name": "fakecli", "message": "test"})
 
         # CLI는 추가되었지만 실제로 설치되지 않아 에러
         assert "error" in send_result
@@ -433,21 +400,14 @@ class TestE2EAddCLI:
         """시나리오: 기본 CLI를 런타임에 덮어쓰기"""
         # claude CLI의 원래 설정 확인
         list_result1 = await call_tool("list_agents", {})
-        original_claude = next(
-            cli for cli in list_result1["clis"] if cli["name"] == "claude"
-        )
+        next(cli for cli in list_result1["clis"] if cli["name"] == "claude")
 
         # claude를 다른 명령어로 덮어쓰기
-        await call_tool("add_agent", {
-            "name": "claude",
-            "command": "claude-modified"
-        })
+        await call_tool("add_agent", {"name": "claude", "command": "claude-modified"})
 
         # 덮어쓰기 확인
         list_result2 = await call_tool("list_agents", {})
-        modified_claude = next(
-            cli for cli in list_result2["clis"] if cli["name"] == "claude"
-        )
+        modified_claude = next(cli for cli in list_result2["clis"] if cli["name"] == "claude")
 
         # 명령어가 변경되었는지 확인
         assert modified_claude["command"] == "claude-modified"
@@ -457,10 +417,7 @@ class TestE2EAddCLI:
         """시나리오: 여러 CLI를 순차적으로 추가"""
         # 3개 CLI 추가
         for i in range(1, 4):
-            result = await call_tool("add_agent", {
-                "name": f"cli{i}",
-                "command": f"cli{i}-cmd"
-            })
+            result = await call_tool("add_agent", {"name": f"cli{i}", "command": f"cli{i}-cmd"})
             assert result["success"] is True
 
         # 모두 목록에 나타나는지 확인

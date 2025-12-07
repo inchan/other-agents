@@ -9,7 +9,7 @@ import re
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 
 class MCPMetricsCollector:
@@ -39,7 +39,7 @@ class MCPMetricsCollector:
                 "--cov=src/other_agents_mcp",
                 "--cov-report=json",
                 "--json-report",
-                "--json-report-file=tests/mcp-validation/test_report.json"
+                "--json-report-file=tests/mcp-validation/test_report.json",
             ],
             capture_output=True,
             text=True,
@@ -61,7 +61,11 @@ class MCPMetricsCollector:
             "skipped": test_stats.get("skipped", 0),
             "errors": test_stats.get("errors", 0),
             "execution_time_seconds": round(execution_time, 2),
-            "pass_rate_percent": round((test_stats["passed"] / test_stats["total"]) * 100, 2) if test_stats["total"] > 0 else 0,
+            "pass_rate_percent": (
+                round((test_stats["passed"] / test_stats["total"]) * 100, 2)
+                if test_stats["total"] > 0
+                else 0
+            ),
         }
 
         self.metrics["coverage"] = coverage_stats
@@ -127,12 +131,12 @@ class MCPMetricsCollector:
         print("\n⚡ 성능 메트릭 수집 중...")
 
         # E2E 성능 테스트만 실행
-        result = subprocess.run(
+        subprocess.run(
             [
                 "./venv/bin/pytest",
                 "tests/mcp-validation/test_e2e_scenarios.py::TestE2EPerformance",
                 "-v",
-                "-s"
+                "-s",
             ],
             capture_output=True,
             text=True,
@@ -187,7 +191,9 @@ class MCPMetricsCollector:
 
         for file in test_files:
             with open(file) as f:
-                total_lines += len([line for line in f if line.strip() and not line.strip().startswith("#")])
+                total_lines += len(
+                    [line for line in f if line.strip() and not line.strip().startswith("#")]
+                )
 
         return total_lines
 
@@ -198,7 +204,9 @@ class MCPMetricsCollector:
         total_lines = 0
         for file in glob(pattern, recursive=True):
             with open(file) as f:
-                total_lines += len([line for line in f if line.strip() and not line.strip().startswith("#")])
+                total_lines += len(
+                    [line for line in f if line.strip() and not line.strip().startswith("#")]
+                )
 
         return total_lines
 
@@ -245,16 +253,16 @@ class MCPMetricsCollector:
         """요약 출력"""
         summary = self.metrics.get("summary", {})
 
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("📊 MCP 검증 메트릭 요약")
-        print("="*60)
+        print("=" * 60)
         print(f"전체 상태: {summary['overall_status']}")
         print(f"총 테스트: {summary['total_tests']} (통과: {summary['passed_tests']})")
         print(f"Hit Rate: {summary['hit_rate_percent']:.2f}%")
         print(f"Success Rate: {summary['success_rate_percent']:.2f}%")
         print(f"코드 커버리지: {summary['coverage_percent']:.2f}%")
         print(f"실행 시간: {summary['execution_time']:.2f}초")
-        print("="*60)
+        print("=" * 60)
 
         # 상세 커버리지
         print("\n📈 파일별 커버리지:")

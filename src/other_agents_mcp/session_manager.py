@@ -16,13 +16,14 @@ logger = get_logger(__name__)
 # 세션 ID 검증 상수
 MAX_SESSION_ID_LENGTH = 128
 MIN_SESSION_ID_LENGTH = 8
-SESSION_ID_PATTERN = re.compile(r'^[a-zA-Z0-9\-_]{8,128}$')
+SESSION_ID_PATTERN = re.compile(r"^[a-zA-Z0-9\-_]{8,128}$")
 MAX_SESSIONS = 1000
 
 
 @dataclass
 class SessionInfo:
     """세션 정보"""
+
     session_id: str
     cli_name: str
     cli_session_id: str
@@ -43,11 +44,7 @@ class SessionManager:
     def __init__(self):
         self._sessions: Dict[str, SessionInfo] = {}
 
-    def create_or_get_session(
-        self,
-        session_id: str,
-        cli_name: str
-    ) -> SessionInfo:
+    def create_or_get_session(self, session_id: str, cli_name: str) -> SessionInfo:
         """
         세션 생성 또는 조회
 
@@ -88,10 +85,7 @@ class SessionManager:
         cli_session_id = self._generate_cli_session_id(cli_name, session_id)
 
         session_info = SessionInfo(
-            session_id=session_id,
-            cli_name=cli_name,
-            cli_session_id=cli_session_id,
-            request_count=1
+            session_id=session_id, cli_name=cli_name, cli_session_id=cli_session_id, request_count=1
         )
 
         self._sessions[session_id] = session_info
@@ -117,14 +111,10 @@ class SessionManager:
             raise ValueError("Session ID cannot be empty")
 
         if len(session_id) < MIN_SESSION_ID_LENGTH:
-            raise ValueError(
-                f"Session ID too short: {len(session_id)} < {MIN_SESSION_ID_LENGTH}"
-            )
+            raise ValueError(f"Session ID too short: {len(session_id)} < {MIN_SESSION_ID_LENGTH}")
 
         if len(session_id) > MAX_SESSION_ID_LENGTH:
-            raise ValueError(
-                f"Session ID too long: {len(session_id)} > {MAX_SESSION_ID_LENGTH}"
-            )
+            raise ValueError(f"Session ID too long: {len(session_id)} > {MAX_SESSION_ID_LENGTH}")
 
         if not SESSION_ID_PATTERN.match(session_id):
             raise ValueError(
@@ -216,7 +206,7 @@ class SessionManager:
         return {
             "total_sessions": len(self._sessions),
             "sessions_by_cli": self._count_by_cli(),
-            "total_requests": sum(s.request_count for s in self._sessions.values())
+            "total_requests": sum(s.request_count for s in self._sessions.values()),
         }
 
     def _count_by_cli(self) -> Dict[str, int]:

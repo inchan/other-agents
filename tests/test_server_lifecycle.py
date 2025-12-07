@@ -4,11 +4,9 @@
 """
 
 import pytest
-import asyncio
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import patch
 
 from other_agents_mcp.server import app, main
-from other_agents_mcp.task_manager import get_task_manager, TaskManager
 
 
 class TestServerLifecycle:
@@ -41,6 +39,7 @@ class TestMainFunction:
             args = mock_run.call_args[0]
             assert len(args) == 1
             import inspect
+
             assert inspect.iscoroutine(args[0])
 
     def test_main_function_logs_startup_info(self, caplog):
@@ -50,6 +49,7 @@ class TestMainFunction:
             mock_run.return_value = None
 
             import logging
+
             caplog.set_level(logging.INFO)
 
             main()

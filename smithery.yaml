@@ -1,0 +1,57 @@
+# Smithery Configuration
+# https://smithery.ai/docs/config
+
+name: other-agents-mcp
+description: |
+  MCP server for communicating with multiple AI CLI agents (Claude, Gemini, Codex, Qwen).
+  Enables parallel execution, session management, and dynamic agent registration.
+
+# 서버 시작 설정
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      MCP_MAX_CONCURRENT_CLI:
+        type: integer
+        description: Maximum concurrent CLI executions (default: 5)
+        default: 5
+      MCP_LOG_LEVEL:
+        type: string
+        enum: [DEBUG, INFO, WARNING, ERROR]
+        description: Log level
+        default: INFO
+    required: []
+
+  commandFunction:
+    # Python 패키지 실행
+    |-
+    (config) => ({
+      command: "uvx",
+      args: ["other-agents-mcp"],
+      env: {
+        MCP_MAX_CONCURRENT_CLI: String(config.MCP_MAX_CONCURRENT_CLI || 5),
+        MCP_LOG_LEVEL: config.MCP_LOG_LEVEL || "INFO"
+      }
+    })
+
+# 메타데이터
+author: inchan
+repository: https://github.com/inchan/other-agents
+license: MIT
+version: 0.0.1
+
+# 태그 (검색용)
+tags:
+  - ai-agents
+  - multi-agent
+  - claude
+  - gemini
+  - codex
+  - qwen
+  - orchestration
+
+# 요구사항
+requirements:
+  - Python 3.10+
+  - At least one AI CLI installed (claude, gemini, codex, or qwen)

@@ -3,7 +3,6 @@
 전역 fixture 및 테스트 설정
 """
 
-import asyncio
 import os
 import pytest
 from other_agents_mcp.cli_registry import CLIRegistry

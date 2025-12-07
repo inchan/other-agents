@@ -1,6 +1,5 @@
 """Tests for config module"""
 
-import pytest
 from other_agents_mcp.config import CLI_CONFIGS
 
 
@@ -20,7 +19,6 @@ class TestCLIConfigs:
 
     def test_cli_config_structure(self):
         """각 CLI 설정이 필수 필드를 포함해야 함"""
-        required_fields = ["command", "timeout", "extra_args", "env_vars"]
 
         for cli_name, config in CLI_CONFIGS.items():
             assert "command" in config, f"{cli_name}: command 필드 없음"
@@ -29,18 +27,14 @@ class TestCLIConfigs:
             assert "env_vars" in config, f"{cli_name}: env_vars 필드 없음"
 
             # timeout은 양수
-            assert isinstance(config["timeout"], int), \
-                f"{cli_name}: timeout은 정수여야 함"
-            assert config["timeout"] > 0, \
-                f"{cli_name}: timeout은 양수여야 함"
+            assert isinstance(config["timeout"], int), f"{cli_name}: timeout은 정수여야 함"
+            assert config["timeout"] > 0, f"{cli_name}: timeout은 양수여야 함"
 
             # extra_args는 리스트
-            assert isinstance(config["extra_args"], list), \
-                f"{cli_name}: extra_args는 리스트여야 함"
+            assert isinstance(config["extra_args"], list), f"{cli_name}: extra_args는 리스트여야 함"
 
             # env_vars는 딕셔너리
-            assert isinstance(config["env_vars"], dict), \
-                f"{cli_name}: env_vars는 딕셔너리여야 함"
+            assert isinstance(config["env_vars"], dict), f"{cli_name}: env_vars는 딕셔너리여야 함"
 
     def test_claude_config(self):
         """Claude CLI 설정 검증"""

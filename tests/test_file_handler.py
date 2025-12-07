@@ -1,9 +1,6 @@
 """Tests for file_handler module"""
 
-import os
-import tempfile
 import pytest
-from pathlib import Path
 from unittest.mock import patch, Mock, MagicMock
 
 from other_agents_mcp.file_handler import (
@@ -26,45 +23,39 @@ class TestExecuteCliFileBased:
         with pytest.raises(CLINotFoundError):
             execute_cli_file_based("nonexistent-cli-12345", "test message")
 
-    @patch('other_agents_mcp.file_handler.subprocess.run')
-    @patch('tempfile.mkstemp')
-    @patch('os.close')
-    @patch('os.unlink')
+    @patch("other_agents_mcp.file_handler.subprocess.run")
+    @patch("tempfile.mkstemp")
+    @patch("os.close")
+    @patch("os.unlink")
     def test_creates_temp_files(self, mock_unlink, mock_close, mock_mkstemp, mock_run):
         """임시 파일을 생성해야 함 (최적화: 완전 모킹)"""
         # Mock 설정
-        mock_mkstemp.side_effect = [
-            (1, '/tmp/input.txt'),
-            (2, '/tmp/output.txt')
-        ]
+        mock_mkstemp.side_effect = [(1, "/tmp/input.txt"), (2, "/tmp/output.txt")]
         mock_run.return_value = Mock(returncode=0, stderr="")
 
         # builtins.open도 모킹 필요
-        with patch('builtins.open', create=True) as mock_open:
+        with patch("builtins.open", create=True) as mock_open:
             mock_file = MagicMock()
             mock_open.return_value.__enter__.return_value = mock_file
             mock_file.read.return_value = "test response"
 
-            result = execute_cli_file_based("claude", "test")
+            execute_cli_file_based("claude", "test")
 
             # 임시 파일이 2개 생성되어야 함 (input, output)
             assert mock_mkstemp.call_count == 2
 
     @pytest.mark.skip(reason="echo is not registered in CLIRegistry - 테스트용 CLI 미등록")
-    @patch('other_agents_mcp.file_handler.subprocess.run')
-    @patch('tempfile.mkstemp')
-    @patch('os.close')
-    @patch('os.unlink')
+    @patch("other_agents_mcp.file_handler.subprocess.run")
+    @patch("tempfile.mkstemp")
+    @patch("os.close")
+    @patch("os.unlink")
     def test_cleans_up_temp_files(self, mock_unlink, mock_close, mock_mkstemp, mock_run):
         """임시 파일이 정리되어야 함 (최적화: 완전 모킹)"""
         # Mock 설정
-        mock_mkstemp.side_effect = [
-            (1, '/tmp/input.txt'),
-            (2, '/tmp/output.txt')
-        ]
+        mock_mkstemp.side_effect = [(1, "/tmp/input.txt"), (2, "/tmp/output.txt")]
         mock_run.return_value = Mock(returncode=0, stderr="")
 
-        with patch('builtins.open', create=True) as mock_open:
+        with patch("builtins.open", create=True) as mock_open:
             mock_file = MagicMock()
             mock_open.return_value.__enter__.return_value = mock_file
             mock_file.read.return_value = "test"
@@ -105,20 +96,17 @@ class TestFileHandlerIntegration:
     """Integration tests with mocked CLI tools (최적화)"""
 
     @pytest.mark.skip(reason="echo is not registered in CLIRegistry - 테스트용 CLI 미등록")
-    @patch('other_agents_mcp.file_handler.subprocess.run')
-    @patch('tempfile.mkstemp')
-    @patch('os.close')
-    @patch('os.unlink')
+    @patch("other_agents_mcp.file_handler.subprocess.run")
+    @patch("tempfile.mkstemp")
+    @patch("os.close")
+    @patch("os.unlink")
     def test_echo_command_wrapped_mode(self, mock_unlink, mock_close, mock_mkstemp, mock_run):
         """echo 명령어로 wrapped 모드 테스트 (최적화: 모킹)"""
         # Mock 설정
-        mock_mkstemp.side_effect = [
-            (1, '/tmp/input.txt'),
-            (2, '/tmp/output.txt')
-        ]
+        mock_mkstemp.side_effect = [(1, "/tmp/input.txt"), (2, "/tmp/output.txt")]
         mock_run.return_value = Mock(returncode=0, stderr="")
 
-        with patch('builtins.open', create=True) as mock_open:
+        with patch("builtins.open", create=True) as mock_open:
             mock_file = MagicMock()
             mock_open.return_value.__enter__.return_value = mock_file
             mock_file.read.return_value = "Hello, World!"
@@ -127,20 +115,17 @@ class TestFileHandlerIntegration:
             assert isinstance(result, str)
 
     @pytest.mark.skip(reason="python3 is not registered in CLIRegistry - 테스트용 CLI 미등록")
-    @patch('other_agents_mcp.file_handler.subprocess.run')
-    @patch('tempfile.mkstemp')
-    @patch('os.close')
-    @patch('os.unlink')
+    @patch("other_agents_mcp.file_handler.subprocess.run")
+    @patch("tempfile.mkstemp")
+    @patch("os.close")
+    @patch("os.unlink")
     def test_python3_version_check(self, mock_unlink, mock_close, mock_mkstemp, mock_run):
         """python3 실행 테스트 (최적화: 모킹)"""
         # Mock 설정
-        mock_mkstemp.side_effect = [
-            (1, '/tmp/input.txt'),
-            (2, '/tmp/output.txt')
-        ]
+        mock_mkstemp.side_effect = [(1, "/tmp/input.txt"), (2, "/tmp/output.txt")]
         mock_run.return_value = Mock(returncode=0, stderr="")
 
-        with patch('builtins.open', create=True) as mock_open:
+        with patch("builtins.open", create=True) as mock_open:
             mock_file = MagicMock()
             mock_open.return_value.__enter__.return_value = mock_file
             mock_file.read.return_value = "test"

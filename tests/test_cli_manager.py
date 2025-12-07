@@ -14,12 +14,7 @@ class TestCLIInfo:
 
     def test_cli_info_creation(self):
         """CLIInfo 데이터클래스 생성 테스트"""
-        cli_info = CLIInfo(
-            name="test",
-            command="test-cli",
-            version="1.0.0",
-            installed=True
-        )
+        cli_info = CLIInfo(name="test", command="test-cli", version="1.0.0", installed=True)
         assert cli_info.name == "test"
         assert cli_info.command == "test-cli"
         assert cli_info.version == "1.0.0"
@@ -27,12 +22,7 @@ class TestCLIInfo:
 
     def test_cli_info_with_none_version(self):
         """버전 정보가 없는 경우"""
-        cli_info = CLIInfo(
-            name="test",
-            command="test-cli",
-            version=None,
-            installed=False
-        )
+        cli_info = CLIInfo(name="test", command="test-cli", version=None, installed=False)
         assert cli_info.version is None
         assert cli_info.installed is False
 
@@ -76,6 +66,7 @@ class TestGetCliVersion:
 
     def test_get_version_failure_non_zero_exit(self, mocker):
         """버전 정보 조회 실패 (non-zero exit code)"""
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=True)
         mock_process = mocker.Mock()
         mock_process.stderr = "command not found"
         mock_process.returncode = 1
@@ -84,7 +75,34 @@ class TestGetCliVersion:
         version = get_cli_version("failing-cli")
         assert version is None
 
+    def test_get_version_timeout_expired(self, mocker):
+        """버전 정보 조회 실패 (타임아웃)"""
+        import subprocess
 
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=True)
+        mocker.patch("subprocess.run", side_effect=subprocess.TimeoutExpired(cmd="test", timeout=5))
+
+        version = get_cli_version("slow-cli")
+        assert version is None
+
+    def test_get_version_file_not_found(self, mocker):
+        """버전 정보 조회 실패 (FileNotFoundError)"""
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=True)
+        mocker.patch("subprocess.run", side_effect=FileNotFoundError("command not found"))
+
+        version = get_cli_version("missing-cli")
+        assert version is None
+
+    def test_get_version_generic_exception(self, mocker):
+        """버전 정보 조회 실패 (일반 예외)"""
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=True)
+        mocker.patch("subprocess.run", side_effect=Exception("unexpected error"))
+
+        version = get_cli_version("error-cli")
+        assert version is None
+
+
+@pytest.mark.usefixtures("reset_cli_registry")
 class TestListAvailableClis:
     """Test list_available_clis function"""
 
@@ -94,7 +112,9 @@ class TestListAvailableClis:
         mocker.patch("other_agents_mcp.cli_manager.get_cli_version", return_value="1.0.0")
         clis = list_available_clis()
         assert isinstance(clis, list)
-        assert len(clis) >= 4  # 최소 claude, gemini, codex, qwen (다른 테스트에서 추가된 CLI 포함 가능)
+        assert (
+            len(clis) >= 4
+        )  # 최소 claude, gemini, codex, qwen (다른 테스트에서 추가된 CLI 포함 가능)
         for cli in clis:
             assert isinstance(cli, CLIInfo)
 
@@ -137,4 +157,3 @@ class TestListAvailableClis:
 
         assert cli_map["qwen"].installed is False
         assert cli_map["qwen"].version is None
-

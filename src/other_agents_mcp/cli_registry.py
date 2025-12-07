@@ -7,7 +7,6 @@
 """
 
 import json
-import os
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -90,8 +89,14 @@ class CLIRegistry:
             "timeout": timeout if timeout is not None else 300,
             "extra_args": extra_args if extra_args is not None else [],
             "env_vars": env_vars if env_vars is not None else {},
-            "supports_skip_git_check": supports_skip_git_check if supports_skip_git_check is not None else False,
-            "skip_git_check_position": skip_git_check_position if skip_git_check_position is not None else "before_extra_args",
+            "supports_skip_git_check": (
+                supports_skip_git_check if supports_skip_git_check is not None else False
+            ),
+            "skip_git_check_position": (
+                skip_git_check_position
+                if skip_git_check_position is not None
+                else "before_extra_args"
+            ),
             "supported_args": supported_args if supported_args is not None else [],
         }
 

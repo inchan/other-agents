@@ -2,6 +2,7 @@
 
 비동기 작업을 관리하고 상태를 추적합니다.
 """
+
 import time
 import asyncio
 import uuid
@@ -18,6 +19,7 @@ TaskStatus = Literal["running", "completed", "failed", "not_found"]
 @dataclass
 class Task:
     """비동기 작업의 데이터 모델"""
+
     task_id: str
     status: TaskStatus = "running"
     result: Optional[Any] = None
@@ -107,10 +109,10 @@ class TaskManager:
     async def start_task(self, coro_func: partial) -> str:
         """함수를 백그라운드 작업으로 시작하고 task_id를 반환합니다."""
         task_id = str(uuid.uuid4())
-        
+
         # 새 작업을 저장소에 즉시 생성
         task = await self._storage.create_task(task_id)
-        
+
         background_task = asyncio.create_task(self._run_and_update(task, coro_func))
         self._running_tasks[task_id] = background_task
         return task_id
@@ -122,7 +124,7 @@ class TaskManager:
             # functools.partial로 감싸진 동기 함수를 스레드에서 실행
             loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(None, coro_func)
-            
+
             task.status = "completed"
             task.result = result
         except Exception as e:
@@ -144,9 +146,9 @@ class TaskManager:
             response["elapsed_time"] = round(task.elapsed_time, 2)
         elif task.status == "completed":
             response["result"] = task.result
-        else: # failed
+        else:  # failed
             response["error"] = task.error
-        
+
         return response
 
     async def _periodic_cleanup(self, interval: int = 600, ttl: int = 3600):
@@ -184,6 +186,6 @@ def get_task_manager() -> TaskManager:
         else:
             logger.info("Using InMemoryStorage")
             storage = InMemoryStorage()
-        
+
         _task_manager_instance = TaskManager(storage=storage)
     return _task_manager_instance
