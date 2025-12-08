@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.1] - 2024-12-07
+## [0.0.1] - 2025-12-07
 
 ### Added
 - **MCP Protocol Support**: Full Model Context Protocol implementation
@@ -18,7 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **File-based I/O**: Robust CLI communication via temporary files
 - **SQLite Storage**: Persistent task storage with automatic cleanup
 - **CI/CD Pipeline**: GitHub Actions workflow for Python 3.10-3.12 testing
-- **Docker Support**: Production-ready Dockerfile with multi-stage build
 - **Comprehensive Test Suite**: 86.5%+ coverage
 
 ### Security
