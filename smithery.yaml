@@ -39,7 +39,7 @@ startCommand:
 author: inchan
 repository: https://github.com/inchan/other-agents
 license: MIT
-version: 0.0.1
+version: 0.0.3
 
 # 태그 (검색용)
 tags:
