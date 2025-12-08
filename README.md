@@ -10,11 +10,27 @@
 Other Agents is an [MCP](https://modelcontextprotocol.io/) server that lets you communicate with multiple AI command-line tools—Claude, Gemini, Codex, and Qwen—through a single, standardized protocol.
 
 ```
-MCP Client (Claude Desktop/Code)
-        ↓ MCP Protocol
-Other Agents MCP Server
-        ↓ File-based I/O
-AI CLI Tools (Claude, Gemini, Codex, Qwen)
+┌─────────────────────────────────────────────────────────────┐
+│                      MCP Client                             │
+│                (Claude Desktop / Code)                      │
+└─────────────────────────┬───────────────────────────────────┘
+                          │ MCP Protocol (stdio)
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 Other Agents MCP Server                     │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  • list_agents    • use_agent    • use_agents       │   │
+│  │  • get_task_status               • add_agent        │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────┬───────────────────────────────────┘
+                          │ File-based I/O
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     AI CLI Tools                            │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐       │
+│  │  Claude  │ │  Gemini  │ │  Codex   │ │   Qwen   │  ...  │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘       │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
