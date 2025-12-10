@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- BrokenPipeError and ConnectionResetError handling: Graceful shutdown when MCP client closes connection early
+- ExceptionGroup support for Python 3.11+ and anyio error handling (recursive nested group detection)
+- Improved stdio_server exception handling for better stability
+- `__cause__` exception chain detection for wrapped connection errors
+
+### Added
+- Comprehensive test suite for connection error handling (9 new tests)
+
 ## [0.0.4] - 2025-12-08
 
 ### Fixed
