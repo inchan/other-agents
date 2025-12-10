@@ -11,6 +11,7 @@ from other_agents_mcp.server import app, main
 
 class MockExceptionGroup(Exception):
     """테스트용 ExceptionGroup 모의 클래스"""
+
     def __init__(self, msg, exceptions):
         super().__init__(msg)
         self.exceptions = exceptions
