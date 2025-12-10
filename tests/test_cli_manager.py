@@ -1,11 +1,13 @@
 """Tests for cli_manager module"""
 
+import subprocess
 import pytest
 from other_agents_mcp.cli_manager import (
     CLIInfo,
     list_available_clis,
     get_cli_version,
     is_cli_installed,
+    check_cli_auth,
 )
 
 
@@ -157,3 +159,132 @@ class TestListAvailableClis:
 
         assert cli_map["qwen"].installed is False
         assert cli_map["qwen"].version is None
+
+    def test_list_clis_with_auth_check(self, mocker):
+        """check_auth=True일 때 인증 상태 확인"""
+
+        def mock_is_installed(command: str) -> bool:
+            return command in ["claude", "gemini"]
+
+        def mock_get_version(command: str) -> str | None:
+            return "1.0" if command in ["claude", "gemini"] else None
+
+        def mock_check_auth(command: str) -> bool | None:
+            if command == "claude":
+                return True  # 인증됨
+            elif command == "gemini":
+                return False  # 인증 필요
+            return None
+
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", side_effect=mock_is_installed)
+        mocker.patch("other_agents_mcp.cli_manager.get_cli_version", side_effect=mock_get_version)
+        mocker.patch("other_agents_mcp.cli_manager.check_cli_auth", side_effect=mock_check_auth)
+
+        clis = list_available_clis(check_auth=True)
+        cli_map = {cli.name: cli for cli in clis}
+
+        # 설치된 CLI만 인증 상태 확인
+        assert cli_map["claude"].authenticated is True
+        assert cli_map["gemini"].authenticated is False
+        # 미설치 CLI는 인증 확인 안 함
+        assert cli_map["codex"].authenticated is None
+
+
+class TestCheckCliAuth:
+    """Test check_cli_auth function"""
+
+    def test_not_installed_returns_none(self, mocker):
+        """미설치 CLI는 None 반환"""
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=False)
+        result = check_cli_auth("nonexistent-cli")
+        assert result is None
+
+    def test_authenticated_cli(self, mocker):
+        """인증된 CLI는 True 반환"""
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=True)
+        mock_process = mocker.Mock()
+        mock_process.stdout = "Hello! How can I help you?"
+        mock_process.stderr = ""
+        mock_process.returncode = 0
+        mocker.patch("subprocess.run", return_value=mock_process)
+
+        result = check_cli_auth("claude")
+        assert result is True
+
+    def test_auth_required_api_key(self, mocker):
+        """API 키 필요 시 False 반환"""
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=True)
+        mock_process = mocker.Mock()
+        mock_process.stdout = ""
+        mock_process.stderr = "Error: API key not found"
+        mock_process.returncode = 1
+        mocker.patch("subprocess.run", return_value=mock_process)
+
+        result = check_cli_auth("claude")
+        assert result is False
+
+    def test_auth_required_login(self, mocker):
+        """로그인 필요 시 False 반환"""
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=True)
+        mock_process = mocker.Mock()
+        mock_process.stdout = "Please login to continue"
+        mock_process.stderr = ""
+        mock_process.returncode = 1
+        mocker.patch("subprocess.run", return_value=mock_process)
+
+        result = check_cli_auth("gemini")
+        assert result is False
+
+    def test_auth_required_unauthorized(self, mocker):
+        """unauthorized 에러 시 False 반환"""
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=True)
+        mock_process = mocker.Mock()
+        mock_process.stdout = ""
+        mock_process.stderr = "unauthorized access"
+        mock_process.returncode = 1
+        mocker.patch("subprocess.run", return_value=mock_process)
+
+        result = check_cli_auth("codex")
+        assert result is False
+
+    def test_auth_required_authenticate(self, mocker):
+        """authenticate 에러 시 False 반환"""
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=True)
+        mock_process = mocker.Mock()
+        mock_process.stdout = ""
+        mock_process.stderr = "please authenticate first"
+        mock_process.returncode = 1
+        mocker.patch("subprocess.run", return_value=mock_process)
+
+        result = check_cli_auth("qwen")
+        assert result is False
+
+    def test_non_zero_exit_without_auth_keywords(self, mocker):
+        """비정상 종료지만 인증 키워드 없으면 None 반환"""
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=True)
+        mock_process = mocker.Mock()
+        mock_process.stdout = ""
+        mock_process.stderr = "some other error"
+        mock_process.returncode = 1
+        mocker.patch("subprocess.run", return_value=mock_process)
+
+        result = check_cli_auth("cli")
+        assert result is None
+
+    def test_timeout_returns_none(self, mocker):
+        """타임아웃 시 None 반환"""
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=True)
+        mocker.patch(
+            "subprocess.run", side_effect=subprocess.TimeoutExpired(cmd="test", timeout=10)
+        )
+
+        result = check_cli_auth("slow-cli")
+        assert result is None
+
+    def test_exception_returns_none(self, mocker):
+        """예외 발생 시 None 반환"""
+        mocker.patch("other_agents_mcp.cli_manager.is_cli_installed", return_value=True)
+        mocker.patch("subprocess.run", side_effect=Exception("unexpected error"))
+
+        result = check_cli_auth("error-cli")
+        assert result is None
