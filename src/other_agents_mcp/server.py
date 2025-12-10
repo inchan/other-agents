@@ -167,7 +167,10 @@ async def list_available_tools():
                         "items": {"type": "string"},
                         "description": "추가 인자 (선택, 기본값: [])",
                     },
-                    "timeout": {"type": "number", "description": "타임아웃 초 (선택, 기본값: 1800)"},
+                    "timeout": {
+                        "type": "number",
+                        "description": "타임아웃 초 (선택, 기본값: 1800)",
+                    },
                     "env_vars": {"type": "object", "description": "환경 변수 (선택, 기본값: {})"},
                     "supports_skip_git_check": {
                         "type": "boolean",
