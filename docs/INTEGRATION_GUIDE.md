@@ -809,7 +809,7 @@ if __name__ == "__main__":
 
 **에러 타입**:
 - `CLINotFoundError`: CLI가 설치되지 않음
-- `CLITimeoutError`: 실행 타임아웃 (60초)
+- `CLITimeoutError`: 실행 타임아웃 (기본값 1800초)
 - `CLIExecutionError`: CLI 실행 중 에러
 
 ---

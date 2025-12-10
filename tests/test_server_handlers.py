@@ -241,7 +241,7 @@ class TestCallToolRunTool:
     async def test_call_tool_run_tool_timeout_error(self):
         """타임아웃 에러 처리 (동기)"""
         with patch("other_agents_mcp.server.execute_cli_file_based") as mock_execute:
-            mock_execute.side_effect = CLITimeoutError("CLI 타임아웃 (300초)")
+            mock_execute.side_effect = CLITimeoutError("CLI 타임아웃 (1800초)")
 
             result = await call_tool(
                 "use_agent",

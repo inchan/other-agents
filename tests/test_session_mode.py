@@ -141,6 +141,45 @@ class TestSessionManager:
         # (이 테스트는 실제 환경에서 시간이 오래 걸림)
         assert MAX_SESSIONS == 1000
 
+    def test_max_sessions_exceeded(self, mocker):
+        """최대 세션 수 초과 테스트"""
+        manager = SessionManager()
+
+        # MAX_SESSIONS를 3으로 모킹하여 테스트
+        mocker.patch("other_agents_mcp.session_manager.MAX_SESSIONS", 3)
+
+        # 세션 3개 생성 후 4번째 시도
+        manager._sessions["session-1"] = None
+        manager._sessions["session-2"] = None
+        manager._sessions["session-3"] = None
+
+        with pytest.raises(ValueError, match="Maximum session count reached"):
+            manager.create_or_get_session("session-4-new", "claude")
+
+    def test_session_id_empty(self):
+        """빈 세션 ID 테스트"""
+        manager = SessionManager()
+
+        with pytest.raises(ValueError, match="cannot be empty"):
+            manager.create_or_get_session("", "claude")
+
+    def test_delete_nonexistent_session(self):
+        """존재하지 않는 세션 삭제 테스트"""
+        manager = SessionManager()
+        result = manager.delete_session("nonexistent-session")
+        assert result is False
+
+    def test_claude_uuid_session_id(self):
+        """Claude: UUID 형식의 MCP session_id는 그대로 사용"""
+        import uuid
+
+        manager = SessionManager()
+        uuid_session_id = str(uuid.uuid4())
+
+        session_info = manager.create_or_get_session(uuid_session_id, "claude")
+        # UUID 형식이면 그대로 사용
+        assert session_info.cli_session_id == uuid_session_id
+
 
 class TestSessionArgs:
     """세션 플래그 생성 테스트"""

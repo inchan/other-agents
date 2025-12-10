@@ -80,7 +80,7 @@ CLI_CONFIGS: dict[str, CLIConfig] = {
     "claude": {
         "command": "claude",
         "extra_args": [],
-        "timeout": 60,
+        "timeout": 1800,
         "env_vars": {},
         "supports_skip_git_check": False,
         "skip_git_check_position": "before_extra_args",
@@ -88,7 +88,7 @@ CLI_CONFIGS: dict[str, CLIConfig] = {
     "gemini": {
         "command": "gemini",
         "extra_args": [],
-        "timeout": 60,
+        "timeout": 1800,
         "env_vars": {},
         "supports_skip_git_check": False,
         "skip_git_check_position": "before_extra_args",
@@ -96,7 +96,7 @@ CLI_CONFIGS: dict[str, CLIConfig] = {
     "codex": {
         "command": "codex",
         "extra_args": ["exec", "-"],
-        "timeout": 60,
+        "timeout": 1800,
         "env_vars": {},
         "supports_skip_git_check": True,
         "skip_git_check_position": "after_extra_args",  # codex exec --skip-git-repo-check -
@@ -104,7 +104,7 @@ CLI_CONFIGS: dict[str, CLIConfig] = {
     "qwen": {
         "command": "qwen",
         "extra_args": [],
-        "timeout": 60,
+        "timeout": 1800,
         "env_vars": {
             "OPENAI_BASE_URL": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
             "OPENAI_MODEL": "qwen3-coder-plus",
@@ -373,7 +373,7 @@ def _is_connection_closed_error(exc: BaseException) -> bool:
 
 5. **타임아웃 설정**
    - **문제**: 각 CLI의 적절한 타임아웃 값 불명확
-   - **완화**: 기본 60초 설정, config에서 수정 가능하게 구현
+   - **완화**: 기본 1800초 (30분) 설정, config에서 수정 가능하게 구현
 
 ### ✅ 구현 완료된 기능
 

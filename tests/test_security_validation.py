@@ -26,7 +26,7 @@ class TestValidateTimeout:
     def test_valid_timeout(self):
         """유효한 타임아웃 값"""
         assert validate_timeout(60) == 60
-        assert validate_timeout(300) == 300
+        assert validate_timeout(1800) == 1800
         assert validate_timeout(MIN_TIMEOUT) == MIN_TIMEOUT
         assert validate_timeout(MAX_TIMEOUT) == MAX_TIMEOUT
 

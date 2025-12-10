@@ -34,7 +34,7 @@ CLI_CONFIGS: dict[str, CLIConfig] = {
     "claude": {
         "command": "claude",
         "extra_args": [],
-        "timeout": 300,
+        "timeout": 1800,
         "env_vars": {},
         "supports_skip_git_check": False,
         "skip_git_check_position": "before_extra_args",
@@ -58,7 +58,7 @@ CLI_CONFIGS: dict[str, CLIConfig] = {
     "gemini": {
         "command": "gemini",
         "extra_args": [],
-        "timeout": 300,
+        "timeout": 1800,
         "env_vars": {},
         "supports_skip_git_check": False,
         "skip_git_check_position": "before_extra_args",
@@ -82,7 +82,7 @@ CLI_CONFIGS: dict[str, CLIConfig] = {
     "codex": {
         "command": "codex",
         "extra_args": ["exec", "-"],
-        "timeout": 300,
+        "timeout": 1800,
         "env_vars": {},
         "supports_skip_git_check": True,
         "skip_git_check_position": "after_extra_args",  # codex exec --skip-git-repo-check -
@@ -107,7 +107,7 @@ CLI_CONFIGS: dict[str, CLIConfig] = {
     "qwen": {
         "command": "qwen",
         "extra_args": [],
-        "timeout": 300,
+        "timeout": 1800,
         "env_vars": {
             "OPENAI_BASE_URL": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
             "OPENAI_MODEL": "qwen3-coder-plus",

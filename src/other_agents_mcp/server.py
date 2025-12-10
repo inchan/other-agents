@@ -103,7 +103,7 @@ async def list_available_tools():
                     },
                     "timeout": {
                         "type": "number",
-                        "description": "타임아웃 초 (선택사항, 기본값: 300). Stateless/Session 모드 모두 지원",
+                        "description": "타임아웃 초 (선택사항, 기본값: 1800). Stateless/Session 모드 모두 지원",
                     },
                 },
                 "required": ["cli_name", "message"],
@@ -134,7 +134,7 @@ async def list_available_tools():
                     },
                     "timeout": {
                         "type": "number",
-                        "description": "각 CLI의 타임아웃 초 (선택사항, 기본값: 300)",
+                        "description": "각 CLI의 타임아웃 초 (선택사항, 기본값: 1800)",
                     },
                 },
                 "required": ["message"],
@@ -167,7 +167,7 @@ async def list_available_tools():
                         "items": {"type": "string"},
                         "description": "추가 인자 (선택, 기본값: [])",
                     },
-                    "timeout": {"type": "number", "description": "타임아웃 초 (선택, 기본값: 300)"},
+                    "timeout": {"type": "number", "description": "타임아웃 초 (선택, 기본값: 1800)"},
                     "env_vars": {"type": "object", "description": "환경 변수 (선택, 기본값: {})"},
                     "supports_skip_git_check": {
                         "type": "boolean",

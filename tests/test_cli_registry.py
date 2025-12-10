@@ -58,7 +58,7 @@ class TestCLIRegistry:
 
         cli = all_clis["testcli"]
         assert cli["command"] == "testcli-cmd"
-        assert cli["timeout"] == 300  # 기본값
+        assert cli["timeout"] == 1800  # 기본값
         assert cli["extra_args"] == []  # 기본값
         assert cli["env_vars"] == {}  # 기본값
         assert cli["supports_skip_git_check"] is False  # 기본값
@@ -91,9 +91,9 @@ class TestCLIRegistry:
         """런타임 CLI가 기본 CLI보다 우선순위 높음"""
         registry = CLIRegistry()
 
-        # 기본 claude CLI의 timeout은 300
+        # 기본 claude CLI의 timeout은 1800
         base_claude = registry.get_all_clis()["claude"]
-        assert base_claude["timeout"] == 300
+        assert base_claude["timeout"] == 1800
 
         # 런타임에 claude 추가 (timeout 변경)
         registry.add_cli(name="claude", command="claude-modified", timeout=999)
@@ -188,7 +188,7 @@ class TestCLIRegistry:
         result = registry._apply_defaults(minimal_config)
 
         assert result["command"] == "test"
-        assert result["timeout"] == 300
+        assert result["timeout"] == 1800
         assert result["extra_args"] == []
         assert result["env_vars"] == {}
         assert result["supports_skip_git_check"] is False

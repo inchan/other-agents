@@ -242,7 +242,7 @@ AI CLI에 프롬프트를 보내고 응답이 올 때까지 기다리는 **동�
 - `system_prompt` (string, optional): 시스템 프롬프트
 - `skip_git_repo_check` (boolean, optional): Git 저장소 체크 건너뛰기 (Codex 등 일부 CLI만 지원)
 - `args` (array, optional): CLI에 전달할 추가 인자
-- `timeout` (number, optional): 타임아웃 (초, 기본값: 300)
+- `timeout` (number, optional): 타임아웃 (초, 기본값: 1800)
 
 **Returns**:
 - **동기 실행 (`run_async=false` 또는 생략)**: `{"response": "..."}`
@@ -257,7 +257,7 @@ AI CLI에 프롬프트를 보내고 응답이 올 때까지 기다리는 **동�
 - `message` (string, required): 전송할 프롬프트
 - `cli_names` (array, optional): 대상 CLI 목록 (생략 시 모든 CLI)
 - `system_prompt` (string, optional): 시스템 프롬프트
-- `timeout` (number, optional): 타임아웃 (초, 기본값: 300)
+- `timeout` (number, optional): 타임아웃 (초, 기본값: 1800)
 
 **Returns**: `{"prompt": "...", "responses": {"claude": {...}, "gemini": {...}, ...}}`
 

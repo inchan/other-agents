@@ -40,7 +40,7 @@ class TestCLIConfigs:
         """Claude CLI 설정 검증"""
         claude = CLI_CONFIGS["claude"]
         assert claude["command"] == "claude"
-        assert claude["timeout"] == 300
+        assert claude["timeout"] == 1800
         assert claude["extra_args"] == []
         assert claude["env_vars"] == {}
 
@@ -48,21 +48,21 @@ class TestCLIConfigs:
         """Gemini CLI 설정 검증"""
         gemini = CLI_CONFIGS["gemini"]
         assert gemini["command"] == "gemini"
-        assert gemini["timeout"] == 300
+        assert gemini["timeout"] == 1800
         assert gemini["env_vars"] == {}
 
     def test_codex_config(self):
         """Codex CLI 설정 검증"""
         codex = CLI_CONFIGS["codex"]
         assert codex["command"] == "codex"
-        assert codex["timeout"] == 300
+        assert codex["timeout"] == 1800
         assert "exec" in codex["extra_args"]
 
     def test_qwen_config(self):
         """Qwen CLI 설정 검증"""
         qwen = CLI_CONFIGS["qwen"]
         assert qwen["command"] == "qwen"
-        assert qwen["timeout"] == 300
+        assert qwen["timeout"] == 1800
         # Qwen은 환경 변수 필요
         assert "OPENAI_BASE_URL" in qwen["env_vars"]
         assert "OPENAI_MODEL" in qwen["env_vars"]
