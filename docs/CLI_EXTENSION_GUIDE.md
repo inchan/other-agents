@@ -51,7 +51,7 @@ MCP 도구 `add_agent`를 사용하여 런타임에 CLI를 추가합니다.
 | 필드 | 기본값 | 설명 |
 |------|--------|------|
 | `extra_args` | `[]` | 추가 명령줄 인자 |
-| `timeout` | `60` | 타임아웃 (초) |
+| `timeout` | `1800` | 타임아웃 (초) |
 | `env_vars` | `{}` | 환경 변수 |
 | `supports_skip_git_check` | `false` | Git 체크 스킵 지원 여부 |
 | `skip_git_check_position` | `"before_extra_args"` | 플래그 위치 |
