@@ -78,7 +78,7 @@ class CLIRegistry:
             name: CLI 이름 (필수)
             command: 실행 명령어 (필수)
             extra_args: 추가 인자 (선택, 기본값: [])
-            timeout: 타임아웃 초 (선택, 기본값: 60)
+            timeout: 타임아웃 초 (선택, 기본값: 1800)
             env_vars: 환경 변수 (선택, 기본값: {})
             supports_skip_git_check: Git 체크 스킵 지원 (선택, 기본값: False)
             skip_git_check_position: 플래그 위치 (선택, 기본값: "before_extra_args")
