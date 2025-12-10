@@ -1,6 +1,6 @@
 # Other Agents MCP Server - Architecture
 
-> **Last Updated:** 2025-11-30
+> **Last Updated:** 2025-12-10
 > **Status:** ✅ Implementation Complete, Production Ready
 
 ---
@@ -266,6 +266,31 @@ if __name__ == "__main__":
 ```
 
 **의존성**: cli_manager.py, file_handler.py
+
+#### 연결 종료 에러 처리 (v0.0.5+)
+
+MCP 클라이언트(Claude Desktop 등)가 연결을 조기 종료할 때 발생하는 에러를 graceful하게 처리합니다.
+
+```python
+def _is_connection_closed_error(exc: BaseException) -> bool:
+    """연결 종료 에러인지 재귀적으로 확인 (중첩된 ExceptionGroup 지원)"""
+    # 직접적인 연결 종료 에러
+    if isinstance(exc, (BrokenPipeError, ConnectionResetError)):
+        return True
+    # ExceptionGroup으로 감싸진 경우 재귀 탐색
+    if hasattr(exc, "exceptions"):
+        return any(_is_connection_closed_error(e) for e in exc.exceptions)
+    # __cause__ 체인 확인
+    if exc.__cause__ is not None:
+        return _is_connection_closed_error(exc.__cause__)
+    return False
+```
+
+**처리되는 예외 유형**:
+- `BrokenPipeError`: stdout 파이프 닫힘
+- `ConnectionResetError`: 연결 리셋
+- 중첩된 `ExceptionGroup` (Python 3.11+, anyio)
+- `__cause__` 체인으로 연결된 예외
 
 ---
 

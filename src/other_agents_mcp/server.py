@@ -407,11 +407,31 @@ def main():
         async with stdio_server() as (read_stream, write_stream):
             await app.run(read_stream, write_stream, app.create_initialization_options())
 
+    def _is_connection_closed_error(exc: BaseException) -> bool:
+        """연결 종료 에러인지 재귀적으로 확인 (중첩된 ExceptionGroup 지원)"""
+        # 직접적인 연결 종료 에러
+        if isinstance(exc, (BrokenPipeError, ConnectionResetError)):
+            return True
+        # ExceptionGroup으로 감싸진 경우 재귀 탐색
+        if hasattr(exc, "exceptions"):
+            return any(_is_connection_closed_error(e) for e in exc.exceptions)
+        # __cause__ 체인 확인
+        if exc.__cause__ is not None:
+            return _is_connection_closed_error(exc.__cause__)
+        return False
+
     try:
         asyncio.run(run())
     except KeyboardInterrupt:
         logger.info("Shutting down...")
         sys.exit(0)
+    except Exception as e:
+        if _is_connection_closed_error(e):
+            logger.debug("Client closed connection, shutting down gracefully")
+            sys.exit(0)
+        else:
+            logger.error(f"Unexpected error: {e}", exc_info=True)
+            raise
 
 
 if __name__ == "__main__":
