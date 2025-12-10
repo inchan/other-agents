@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.5] - 2025-12-10
+
 ### Fixed
 - BrokenPipeError and ConnectionResetError handling: Graceful shutdown when MCP client closes connection early
 - ExceptionGroup support for Python 3.11+ and anyio error handling (recursive nested group detection)
