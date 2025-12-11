@@ -31,9 +31,9 @@ class TestListToolsHandler:
 
     @pytest.mark.asyncio
     async def test_list_tools_count(self):
-        """도구가 4개인지 확인 (list_tools, run_tool, get_run_status, add_tool)"""
+        """도구가 7개인지 확인 (list_agents, use_agent, use_agents, get_task_status, add_agent, start_meeting, get_meeting_status)"""
         tools = await list_tools()
-        assert len(tools) == 5
+        assert len(tools) == 7
 
     @pytest.mark.asyncio
     async def test_list_tools_schema_structure(self):

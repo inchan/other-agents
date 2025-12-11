@@ -28,7 +28,7 @@ class TestServerInitialization:
         tools = await list_available_tools()
 
         # 5개 툴 확인
-        assert len(tools) == 5
+        assert len(tools) == 7  # 기존 5개 + start_meeting, get_meeting_status
 
         tool_names = [tool.name for tool in tools]
         assert "list_agents" in tool_names

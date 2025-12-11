@@ -19,7 +19,7 @@ class TestE2EBasicWorkflow:
         # Step 1: 도구 목록 조회
         tools = await list_tools()
 
-        assert len(tools) == 5  # list_tools, run_tool, get_run_status, add_tool, run_multi_tools
+        assert len(tools) == 7  # 기존 5개 + start_meeting, get_meeting_status
         tool_names = {tool.name for tool in tools}
         assert "list_agents" in tool_names
         assert "use_agent" in tool_names
@@ -298,7 +298,7 @@ class TestE2EIntegration:
         """시나리오: 전체 사용자 여정"""
         # 1. 사용 가능한 도구 확인
         tools = await list_tools()
-        assert len(tools) == 5  # list_tools, run_tool, get_run_status, add_tool
+        assert len(tools) == 7  # 기존 5개 + start_meeting, get_meeting_status
 
         # 2. CLI 목록 조회
         clis_result = await call_tool("list_agents", {})

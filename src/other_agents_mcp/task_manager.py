@@ -117,6 +117,41 @@ class TaskManager:
         self._running_tasks[task_id] = background_task
         return task_id
 
+    async def start_async_task(self, coro, task_id: Optional[str] = None) -> str:
+        """비동기 코루틴을 백그라운드 작업으로 시작하고 task_id를 반환합니다.
+
+        Args:
+            coro: 실행할 코루틴 객체
+            task_id: 선택적 task_id (지정하지 않으면 UUID 생성)
+
+        Returns:
+            task_id 문자열
+        """
+        if task_id is None:
+            task_id = str(uuid.uuid4())
+
+        # 새 작업을 저장소에 즉시 생성
+        task = await self._storage.create_task(task_id)
+
+        background_task = asyncio.create_task(self._run_async_and_update(task, coro))
+        self._running_tasks[task_id] = background_task
+        return task_id
+
+    async def _run_async_and_update(self, task: Task, coro):
+        """비동기 코루틴을 실행하고 결과를 저장소에 업데이트합니다."""
+        task_id = task.task_id
+        try:
+            result = await coro
+            task.status = "completed"
+            task.result = result
+        except Exception as e:
+            task.status = "failed"
+            task.error = str(e)
+        finally:
+            task.completed_at = time.time()
+            await self._storage.update_task(task)
+            self._running_tasks.pop(task_id, None)
+
     async def _run_and_update(self, task: Task, coro_func: partial):
         """코루틴을 실행하고 결과를 저장소에 업데이트합니다."""
         task_id = task.task_id
