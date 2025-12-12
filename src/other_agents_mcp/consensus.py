@@ -104,7 +104,8 @@ def parse_vote_from_response(response: str) -> VoteType:
     """
     response_lower = response.lower()
 
-    # 각 투표 타입별 패턴 검사 (우선순위: AGREE > DISAGREE > ABSTAIN)
+    # 각 투표 타입별 패턴 검사 (VOTE_PATTERNS 순서: DISAGREE > AGREE > ABSTAIN)
+    # DISAGREE를 먼저 검사하여 "disagreed"가 "agreed"로 오인식되지 않도록 함
     for vote_type, patterns in VOTE_PATTERNS.items():
         for pattern in patterns:
             if re.search(pattern, response, re.IGNORECASE):

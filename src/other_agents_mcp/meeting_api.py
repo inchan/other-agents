@@ -13,7 +13,7 @@ def get_meeting_tools() -> list[Tool]:
     return [
         Tool(
             name="start_meeting",
-            description="다중 에이전트 회의를 시작합니다. 지정된 에이전트들이 주제에 대해 만장일치가 나올 때까지 토론합니다.",
+            description="다중 에이전트 회의를 시작합니다. 지정된 에이전트들이 주제에 대해 합의가 나올 때까지 토론합니다.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -24,17 +24,24 @@ def get_meeting_tools() -> list[Tool]:
                     "agents": {
                         "type": "array",
                         "items": {"type": "string"},
+                        "minItems": 2,
                         "description": "참여 에이전트 목록 (필수). 예: ['claude', 'gemini', 'codex']. 최소 2개 이상",
                     },
                     "max_rounds": {
                         "type": "integer",
                         "default": 5,
-                        "description": "최대 라운드 수 (선택, 기본값: 5). 만장일치 없이 이 횟수에 도달하면 종료",
+                        "description": "최대 라운드 수 (선택, 기본값: 5). 합의 없이 이 횟수에 도달하면 종료",
                     },
                     "timeout_per_round": {
                         "type": "integer",
                         "default": 300,
                         "description": "라운드당 타임아웃 초 (선택, 기본값: 300)",
+                    },
+                    "consensus_type": {
+                        "type": "string",
+                        "enum": ["unanimous", "supermajority", "majority"],
+                        "default": "unanimous",
+                        "description": "합의 유형 (선택, 기본값: unanimous). unanimous=만장일치(100%), supermajority=절대다수(2/3), majority=과반수(50%+)",
                     },
                 },
                 "required": ["topic", "agents"],
