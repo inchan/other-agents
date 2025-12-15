@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.8] - 2025-12-15
+
+### Added
+- **Headless/Yolo/Sandbox Mode**: Default flags for non-interactive, automated execution:
+  - claude: `--print`, `--dangerously-skip-permissions`
+  - gemini: `--yolo`, `--sandbox`
+  - codex: `--full-auto`, `--sandbox` (added to existing `exec -`)
+  - qwen: `--headless`, `--yolo`, `--sandbox`
+
+### Changed
+- **Documentation**: Updated CLI_REFERENCE.md with new default flags
+
+### Removed
+- **Qwen env vars**: Removed OPENAI_BASE_URL and OPENAI_MODEL from qwen config (users should set their own)
+
 ## [0.0.7] - 2025-12-12
 
 ### Fixed
