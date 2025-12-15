@@ -9,7 +9,7 @@
 import re
 from typing import Optional
 
-from .meeting_schema import VoteType, AgentResponse, MeetingRound, ConsensusType
+from .meeting_schema import VoteType, MeetingRound, ConsensusType
 from .logger import get_logger
 
 logger = get_logger(__name__)
@@ -59,12 +59,12 @@ def generate_meeting_system_prompt(topic: str, round_number: int, previous_respo
     """
     prompt_parts = [
         "당신은 다중 에이전트 회의에 참여하고 있습니다.",
-        f"",
-        f"## 회의 주제",
+        "",
+        "## 회의 주제",
         f"{topic}",
-        f"",
+        "",
         f"## 현재 라운드: {round_number}",
-        f"",
+        "",
         "## 규칙",
         "1. 주제에 대해 의견을 제시하세요.",
         "2. 다른 에이전트의 의견을 고려하여 판단하세요.",
@@ -102,8 +102,6 @@ def parse_vote_from_response(response: str) -> VoteType:
     Returns:
         VoteType (기본값: ABSTAIN)
     """
-    response_lower = response.lower()
-
     # 각 투표 타입별 패턴 검사 (VOTE_PATTERNS 순서: DISAGREE > AGREE > ABSTAIN)
     # DISAGREE를 먼저 검사하여 "disagreed"가 "agreed"로 오인식되지 않도록 함
     for vote_type, patterns in VOTE_PATTERNS.items():

@@ -41,7 +41,9 @@ class TestCLIConfigs:
         claude = CLI_CONFIGS["claude"]
         assert claude["command"] == "claude"
         assert claude["timeout"] == 1800
-        assert claude["extra_args"] == []
+        # headless/yolo 모드 플래그
+        assert "--print" in claude["extra_args"]
+        assert "--dangerously-skip-permissions" in claude["extra_args"]
         assert claude["env_vars"] == {}
 
     def test_gemini_config(self):
@@ -63,6 +65,8 @@ class TestCLIConfigs:
         qwen = CLI_CONFIGS["qwen"]
         assert qwen["command"] == "qwen"
         assert qwen["timeout"] == 1800
-        # Qwen은 환경 변수 필요
-        assert "OPENAI_BASE_URL" in qwen["env_vars"]
-        assert "OPENAI_MODEL" in qwen["env_vars"]
+        # headless/yolo/sandbox 모드 플래그
+        assert "--headless" in qwen["extra_args"]
+        assert "--yolo" in qwen["extra_args"]
+        assert "--sandbox" in qwen["extra_args"]
+        assert qwen["env_vars"] == {}

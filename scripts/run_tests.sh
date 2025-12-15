@@ -60,6 +60,14 @@ if ! ./venv/bin/python -m pytest --version &> /dev/null; then
 fi
 
 echo ""
+echo "🧹 Running linter (ruff)..."
+if ! ./venv/bin/ruff check .; then
+  echo "❌ Linting failed! Please fix the errors above."
+  exit 1
+fi
+echo "✅ Linting passed"
+
+echo ""
 echo "🧪 Running tests with coverage (parallel execution with pytest-xdist)..."
 echo ""
 

@@ -131,7 +131,7 @@ class TestFileHandlerMocked:
     @patch("builtins.open", create=True)
     @patch("other_agents_mcp.file_handler.os.remove")
     @patch("other_agents_mcp.file_handler.os.path.exists")
-    def test_env_vars_passed(
+    def test_extra_args_passed(
         self,
         mock_exists,
         mock_remove,
@@ -142,7 +142,7 @@ class TestFileHandlerMocked:
         mock_run,
         mock_installed,
     ):
-        """환경 변수가 올바르게 전달되는지 확인"""
+        """extra_args(headless/yolo/sandbox 플래그)가 올바르게 전달되는지 확인"""
         mock_installed.return_value = True
         mock_mkstemp.side_effect = [(1, "/tmp/input.txt"), (2, "/tmp/output.txt")]
         mock_fdopen.return_value.__enter__.return_value.write = Mock()
@@ -150,17 +150,17 @@ class TestFileHandlerMocked:
         mock_open_builtin.return_value.__enter__.return_value.read.return_value = "OK"
         mock_exists.return_value = True
 
-        # Qwen CLI (환경 변수 있음)
+        # Qwen CLI (headless/yolo/sandbox 플래그)
         execute_cli_file_based("qwen", "test")
 
         # subprocess.run 호출 확인
         assert mock_run.called
-        call_kwargs = mock_run.call_args[1]
+        call_args = mock_run.call_args[0][0]  # 실행된 명령어 리스트
 
-        # 환경 변수 전달 확인
-        assert "env" in call_kwargs
-        assert "OPENAI_BASE_URL" in call_kwargs["env"]
-        assert "OPENAI_MODEL" in call_kwargs["env"]
+        # headless 모드 플래그 전달 확인
+        assert "--headless" in call_args
+        assert "--yolo" in call_args
+        assert "--sandbox" in call_args
 
 
 class TestExceptionCoverage:

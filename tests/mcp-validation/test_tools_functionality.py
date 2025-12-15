@@ -395,14 +395,15 @@ class TestCLIConfiguration:
         for cli_name, config in CLI_CONFIGS.items():
             assert config["timeout"] > 0
 
-    def test_qwen_has_custom_env_vars(self):
-        """qwen CLI가 커스텀 환경 변수를 가지는지 확인"""
+    def test_qwen_has_headless_mode_flags(self):
+        """qwen CLI가 headless/yolo/sandbox 모드 플래그를 가지는지 확인"""
         from other_agents_mcp.config import CLI_CONFIGS
 
         qwen_config = CLI_CONFIGS["qwen"]
 
-        assert "OPENAI_BASE_URL" in qwen_config["env_vars"]
-        assert "OPENAI_MODEL" in qwen_config["env_vars"]
+        assert "--headless" in qwen_config["extra_args"]
+        assert "--yolo" in qwen_config["extra_args"]
+        assert "--sandbox" in qwen_config["extra_args"]
 
 
 if __name__ == "__main__":

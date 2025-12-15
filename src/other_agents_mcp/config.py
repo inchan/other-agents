@@ -33,7 +33,7 @@ class CLIConfig(TypedDict):
 CLI_CONFIGS: dict[str, CLIConfig] = {
     "claude": {
         "command": "claude",
-        "extra_args": [],
+        "extra_args": ["--print", "--dangerously-skip-permissions"],
         "timeout": 1800,
         "env_vars": {},
         "supports_skip_git_check": False,
@@ -53,11 +53,12 @@ CLI_CONFIGS: dict[str, CLIConfig] = {
             "--continue",
             "--resume",
             "--output-format",
+            "--dangerously-skip-permissions",
         ],
     },
     "gemini": {
         "command": "gemini",
-        "extra_args": [],
+        "extra_args": ["--yolo", "--sandbox"],
         "timeout": 1800,
         "env_vars": {},
         "supports_skip_git_check": False,
@@ -81,7 +82,7 @@ CLI_CONFIGS: dict[str, CLIConfig] = {
     },
     "codex": {
         "command": "codex",
-        "extra_args": ["exec", "-"],
+        "extra_args": ["exec", "-", "--full-auto", "--sandbox"],
         "timeout": 1800,
         "env_vars": {},
         "supports_skip_git_check": True,
@@ -106,12 +107,9 @@ CLI_CONFIGS: dict[str, CLIConfig] = {
     },
     "qwen": {
         "command": "qwen",
-        "extra_args": [],
+        "extra_args": ["--headless", "--yolo", "--sandbox"],
         "timeout": 1800,
-        "env_vars": {
-            "OPENAI_BASE_URL": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
-            "OPENAI_MODEL": "qwen3-coder-plus",
-        },
+        "env_vars": {},
         "supports_skip_git_check": False,
         "skip_git_check_position": "before_extra_args",
         "supported_args": [
@@ -124,6 +122,7 @@ CLI_CONFIGS: dict[str, CLIConfig] = {
             "--debug",
             "--sandbox",
             "--yolo",
+            "--headless",
             "--include-directories",
             "--openai-api-key",
             "--openai-base-url",
